@@ -1,9 +1,19 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    new_title
+    home
 {% endblock %}
 
 {% block body %}
-    new_body
+    <div>
+        <h1 class="untangle-header-1">Do what matters most.</h1>
+        <p class="untangle-text">
+            Untangle your thoughts and unlock a 
+            clearer mind, by keeping track of tasks, 
+            projects and notes, all in one place.
+        </p>
+        <img src="/static/untangler_1.png" alt="Untangler" width="388" height="336" class="d-inline-block align-text-left">
+    </div>
+
+    <button type="button" class="btn btn-danger" href="/signup" style="background-color: #ff0e62">Sign Up for Free</button>
 {% endblock %}
