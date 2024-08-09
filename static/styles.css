@@ -2,11 +2,72 @@
 {
     font-family: Lato;
     color: #ff0e62;
+    font-size: 40pt;
+    padding: 15px;
 }
 
+.untangle-btn
+{
+    background-color: #ff0e62; 
+    color:white; 
+    font-size: 16pt; 
+    margin-left: 1rem;
+}
 
 .untangle-text
 {
     font-family: Lato;
     color: #ff0e62;
+    font-size: 18pt;
+    padding: 15px;
+}
+
+a 
+{
+    color: #ff0e62;
+    text-decoration: none;
+}
+
+a:link 
+{
+    color: #ff0e62;
+    text-decoration: underline;
+}
+
+a:hover 
+{
+    color:#ff0e62; 
+    text-decoration:none; 
+    cursor:pointer;  
+}
+
+
+  
+.row 
+{
+    display: flex;
+}
+  
+  
+.column-2 
+{
+    flex: 50%;
+    padding: 70px;
+    height: 600px;
+}
+
+.column-3 
+{
+    flex: 33.33%;
+    padding: 70px;
+    height: 800px;
+}
+
+
+@media (max-width: 800px) 
+{
+    .row 
+    {
+        flex-direction: column;
+    }
 }
