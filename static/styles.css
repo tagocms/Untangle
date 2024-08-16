@@ -2,7 +2,7 @@
 {
     font-family: Lato;
     color: #ff0e62;
-    font-size: 40pt;
+    font-size: 333.333%;
     padding: 15px;
 }
 
@@ -10,16 +10,37 @@
 {
     background-color: #ff0e62; 
     color:white; 
-    font-size: 16pt; 
-    margin-left: 1rem;
+    font-size: 133.333%; 
+    margin-left: 0rem;
+}
+
+.untangle-btn:hover
+{
+    color: #ff0e62;
+    background-color: white;
 }
 
 .untangle-text
 {
     font-family: Lato;
     color: #ff0e62;
-    font-size: 18pt;
+    font-size: 150%;
     padding: 15px;
+}
+
+.untangle-signup
+{
+    padding: 20px;
+    border-radius: 25px;
+    background-color: white;
+    height: 300px;
+}
+
+.untangle-form
+{
+    font-size: 133.333%;
+    color: #ff0e62;
+    border-color: #ff0e62;
 }
 
 a 
