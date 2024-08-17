@@ -1,13 +1,13 @@
-{% extends "layout.html" %}
+{% extends "layout_log.html" %}
 
 {% block title %}
     signup
 {% endblock %}
 
-{% block body %}
+{% block body_layout %}
 <div class="row">
-    <div class="column-2" style="background-color: #f5c0d2;">
-        <div class="untangle-signup">
+    <div class="column-2" style="background-color: #f5c0d2; height: 100vh;">
+        <div class="untangle-signup" style="margin-top: auto; margin-bottom: auto;">
             <form action="/signup" method="post">
                 <div class="mb-3">
                     <input autocomplete="off" autofocus class="form-control mx-auto w-auto untangle-form" name="email" placeholder="Email address" type="text">
@@ -18,12 +18,12 @@
                 <div class="mb-3">
                     <input class="form-control mx-auto w-auto untangle-form" name="confirmation" placeholder="Confirm Password" type="password">
                 </div>
-                <button class="btn untangle-btn" style="margin-left: auto; margin-right: auto; display: block">Register</button>
+                <button class="btn untangle-btn" type="submit" style="margin-left: auto; margin-right: auto; display: block">Register</button>
             </form>
         </div>
     </div>
-    <div class="column-2" style="background-color: white;">
-        <img src="/static/untangle-art-1.png" alt="Untangle Art" width="720" height="504" class="img-fluid">
+    <div class="column-2" style="background-color: white; height: 100vh;">
+        <img src="/static/untangle-art-1.png" alt="Untangle Art" width="720" height="504" class="img-fluid" style="margin-top: auto">
     </div>
 </div>
 {% endblock %}

@@ -20,26 +20,6 @@
 
     </head>
     <body>
-        <nav class="navbar" style="background-color: white; border-color: white; position: fixed; width:100%; top: 0px;">
-          <div class="container-fluid shadow" style="background-color: white; border-color: white;">
-            <a class="navbar-brand" href="/">
-              <img src="/static/logo+name.png" alt="Logo" width="120" height="85" class="d-inline-block align-text-top">
-            </a>
-            <ul class="nav nav-pills">
-              <li class="nav-item">
-                <a class="nav-link" href="/login" style="color:#ff0e62; text-decoration: none;">Log In</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/signup" style="background-color: #ff0e62; text-decoration: none;">Sign Up for Free</a>
-              </li>
-            </ul>
-          </div>
-        </nav>
-        <div style="margin-top: 4rem">
-          {% block body %}{% endblock %}
-        </div>
-        <footer class="untangle-text" style="background-color:#f5c0d2; font-size: 10pt; margin-top: 2rem">
-          @2024 untangle
-        </footer>
+      {% block body_layout %}{% endblock %}
     </body>
 </html>

@@ -1,12 +1,12 @@
-{% extends "layout.html" %}
+{% extends "layout_home.html" %}
 
 {% block title %}
     home
 {% endblock %}
 
 {% block body %}
-    <div class="row">
-        <div class="column-2" style="flex-basis: 500px;">
+    <div class="row content">
+        <div class="column-2">
             <h1 class="untangle-header-1">Do what matters most</h1>
             <p class="untangle-text">
                 Untangle your thoughts and unlock a 
@@ -14,16 +14,16 @@
                 projects and notes, all in one place.
             </p>
 
-            <button type="button" class="btn untangle-btn" href="/signup">Sign Up for Free</button>
-            <p class="untangle-text" style="font-size: 100%; padding: 15px">Already have an account? <a href="/login">Log In</a></p>
+            <a href="/signup" style="text-decoration: none;"><button type="button" class="btn untangle-btn">Sign Up for Free</button></a>
+            <p class="untangle-text" style="font-size: 100%; padding: 3%">Already have an account? <a href="/login">Log In</a></p>
         </div>
         <div class="column-2">
-            <img src="/static/untangler_1.png" alt="Untangler" width="720" height="504" class="img-fluid">
+            <img src="/static/untangler_1.png" alt="Untangler" width="960" height="504" class="img-fluid">
         </div>
     </div>
 
-    <div class="row">
-        <div class="column-3" style="text-align: left;">
+    <div class="row content">
+        <div class="column-3 left">
             <img src="/static/placeholder.jpg" alt="Placeholder" width="320" height="320" class="img-fluid">
         </div>
 
@@ -35,7 +35,7 @@
             </p>
 
             <div class="row">
-                <div class="column-2" style="text-align: left; height: 200px; padding: 0px;">
+                <div class="column-2" style="text-align: left; height: 10%; padding: 0%;">
                     <ul class="untangle-text" style="list-style-type: none;">
                         <li>Quick capture</li>
                         <li>Reminders</li>
@@ -44,7 +44,7 @@
                     </ul>
                 </div>
 
-                <div class="column-2" style="text-align: right; height: 200px; padding: 0px;">
+                <div class="column-2" style="text-align: right; height: 10%; padding: 0%;">
                     <ul class="untangle-text" style="list-style-type: none;">
                         <li>Note link</li>
                         <li>Table</li>
@@ -59,40 +59,42 @@
             </p>
         </div>
 
-        <div class="column-3" style="text-align: right;">
+        <div class="column-3 right">
             <img src="/static/placeholder.jpg" alt="Placeholder" width="320" height="320" class="img-fluid">
         </div>
         
     </div>
 
-    <div class="row"  style="background-color:#f5c0d2;">
-        <div class="column-2" style="text-align: left;">
-            <img src="/static/placeholder.jpg" alt="Placeholder" width="320" height="320" class="img-fluid">
-        </div>
-        <div class="column-2" style="flex-basis: 500px;">
-            <h1 class="untangle-header-1">Capture, clarify and connect</h1>
-
-            <p class="untangle-text">
-                Understand and organize your tasks, lists and projects, linking them all together.
-            </p>
+    <div class="bg-soft-magenta">
+        <div class="row content">
+            <div class="column-2 left">
+                <img src="/static/placeholder.jpg" alt="Placeholder" width="320" height="320" class="img-fluid">
+            </div>
+            <div class="column-2" style="flex-basis: 30%;">
+                <h1 class="untangle-header-1">Capture, clarify and connect</h1>
+                <p class="untangle-text">
+                    Understand and organize your tasks, lists and projects, linking them all together.
+                </p>
+            </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="column-2" style="flex-basis: 500px;">
+    <div class="row content">
+        <div class="column-2" style="flex-basis: 30%;">
             <h1 class="untangle-header-1">More than a digital notebook</h1>
 
             <p class="untangle-text">
                 Journal, study or take any kind of notes, linking them to each other and to your tasks.
             </p>
         </div>
-        <div class="column-2" style="text-align: right;">
+        <div class="column-2 right">
             <img src="/static/placeholder.jpg" alt="Placeholder" width="320" height="320" class="img-fluid">
         </div>
     </div>
 
-    <h1 class="untangle-header-1" style="text-align: center;">Do what matters most.</h1>
-
-    <button type="button" class="btn untangle-btn" href="/signup" style="margin-left: auto; margin-right: auto; display: block">Sign Up for Free</button>
+    <div class="content">
+        <h1 class="untangle-header-1" style="text-align: center;">Do what matters most</h1>
+        <a href="/signup" style="text-decoration: none;"><button type="button" class="btn untangle-btn" style="margin-left: auto; margin-right: auto; display: block">Sign Up for Free</button></a>
+    </div>
 
 {% endblock %}

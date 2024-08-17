@@ -1,31 +1,55 @@
+.content {
+    max-width: 1200px;
+    margin: auto;
+  }
+
 .untangle-header-1
 {
     font-family: Lato;
     color: #ff0e62;
-    font-size: 333.333%;
-    padding: 15px;
+    font-size: 300%;
+    padding: 3%;
 }
 
 .untangle-btn
 {
     background-color: #ff0e62; 
     color:white; 
-    font-size: 133.333%; 
-    margin-left: 0rem;
+    font-size: 115%; 
+    margin-left: 1rem;
+    text-decoration: none;
 }
 
 .untangle-btn:hover
 {
     color: #ff0e62;
     background-color: white;
+    text-decoration: none;
 }
+
+.untangle-btn:active
+{
+    color: #ff0e62;
+    background-color: white;
+    border-color: #ff0e62;
+    text-decoration: none;
+}
+
+.untangle-btn[type=submit]:active
+{
+    color: #ff0e62;
+    background-color: white;
+    border-color: #ff0e62;
+    text-decoration: none;
+}
+
 
 .untangle-text
 {
     font-family: Lato;
     color: #ff0e62;
-    font-size: 150%;
-    padding: 15px;
+    font-size: 133.33%;
+    padding: 3%;
 }
 
 .untangle-signup
@@ -33,14 +57,23 @@
     padding: 20px;
     border-radius: 25px;
     background-color: white;
-    height: 300px;
+    height: 30vh;
+    margin-left: 15vh;
+    margin-right: 15vh;
+    text-align: center;
 }
 
 .untangle-form
 {
-    font-size: 133.333%;
+    font-size: 100%;
     color: #ff0e62;
     border-color: #ff0e62;
+    display: block;
+}
+
+.untangle-form::placeholder
+{
+    color: #ff0e62;
 }
 
 a 
@@ -73,22 +106,57 @@ a:hover
 .column-2 
 {
     flex: 50%;
-    padding: 70px;
-    height: 600px;
+    padding: 4%;
+    height: 50%;
 }
 
 .column-3 
 {
     flex: 33.33%;
-    padding: 70px;
-    height: 800px;
+    padding: 4%;
+    height: 60%;
+}
+
+.left
+{
+    text-align: left;
+}
+
+.right
+{
+    text-align: right;
+}
+
+.bg-soft-magenta 
+{
+    background: #f5c0d2;
 }
 
 
-@media (max-width: 800px) 
+@media (max-width: 1200px) 
 {
     .row 
     {
         flex-direction: column;
+    }
+    div 
+    {
+        text-align: center;
+    }
+    img 
+    {
+        text-align: center;
+    }
+    .left
+    {
+        text-align: center;
+    }
+    .right
+    {
+        text-align: center;
+    }
+    .untangle-btn
+    {
+        margin-left: 0rem;
     }
 }
