@@ -6,24 +6,38 @@
 
 {% block body_layout %}
 <div class="row">
-    <div class="column-2" style="background-color: #f5c0d2; height: 100vh;">
-        <div class="untangle-signup" style="margin-top: auto; margin-bottom: auto;">
-            <form action="/signup" method="post">
-                <div class="mb-3">
-                    <input autocomplete="off" autofocus class="form-control mx-auto w-auto untangle-form" name="email" placeholder="Email address" type="text">
+    <div class="column-2 bg-soft-magenta" style="height: 100vh;">
+        <div class="content">
+            <a class="untangle-form-image" href="/">
+                <img src="/static/logo+name.png" alt="Logo" width="200" height="80" class="img-fluid d-inline-block align-text-top">
+            </a>
+            <div class="untangle-signup">
+                <div class="untangle-text untangle-form-head" style="text-align: left;">
+                    <a class="untangle-anchor-disabled" href="/signup"><b class="untangle-text-active" style="margin-right: 0.5rem;">Sign Up</b></a>
+                    <a class="untangle-anchor-disabled" href="/login"><b class="untangle-text-disabled">Log In</b></a>
                 </div>
-                <div class="mb-3">
-                    <input class="form-control mx-auto w-auto untangle-form" name="password" placeholder="Password" type="password">
-                </div>
-                <div class="mb-3">
-                    <input class="form-control mx-auto w-auto untangle-form" name="confirmation" placeholder="Confirm Password" type="password">
-                </div>
-                <button class="btn untangle-btn" type="submit" style="margin-left: auto; margin-right: auto; display: block">Register</button>
-            </form>
+                <form action="/signup" method="post">
+                    <div class="form-floating mb-3">
+                        <input autocomplete="off" autofocus class="form-control untangle-form" name="email" placeholder="E-mail" type="email" id="emailAddress">
+                        <label class="form-label untangle-form" for="emailAddress" style="color:#ff0e62;">E-mail</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input class="form-control untangle-form" name="password" placeholder="Password" type="password" id="typePassword">
+                        <label class="form-label untangle-form" for="typePassword" style="color:#ff0e62;">Password</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input class="form-control untangle-form" name="confirmation" placeholder="Confirm Password" type="password" id="confirmPassword">
+                        <label class="form-label untangle-form" for="confirmPassword" style="color:#ff0e62;">Confirm password</label>
+                    </div>
+                    <button class="btn untangle-btn" type="submit" style="margin-left: auto; margin-right: auto; display: block; width: 100%;">Register</button>
+                </form>
+            </div>
         </div>
     </div>
     <div class="column-2" style="background-color: white; height: 100vh;">
-        <img src="/static/untangle-art-1.png" alt="Untangle Art" width="720" height="504" class="img-fluid" style="margin-top: auto">
+        <div class="content">
+            <img src="/static/untangle-art-1.png" alt="Untangle Art" class="login-img">
+        </div>
     </div>
 </div>
 {% endblock %}

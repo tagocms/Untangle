@@ -54,13 +54,57 @@
 
 .untangle-signup
 {
-    padding: 20px;
-    border-radius: 25px;
+    padding: 5%;
+    border-radius: 5%;
     background-color: white;
-    height: 30vh;
-    margin-left: 15vh;
-    margin-right: 15vh;
+    height: 60%;
+    margin-left: 10%;
+    margin-right: 10%;
+    width: 60%;
     text-align: center;
+    margin: auto;
+}
+
+.untangle-form-image
+{
+    margin-left: 23%;
+    margin-right: 23%;
+    width: 40%;
+    text-align: center;
+}
+
+.login-img
+{
+    height: 60%;
+    width: 50%;
+    margin-top: 15%;
+    right: 10%;
+    overflow: visible;
+    position: absolute;
+}
+
+.untangle-form-head
+{
+    color: #f5c0d2;
+    border-bottom: solid 1px;
+    margin-bottom: 2rem;
+    margin-top: -1rem;
+    font-size: 100%;
+}
+
+.untangle-text-active
+{
+    color:#ff0e62;
+}
+
+.untangle-text-disabled
+{
+    color:#f5c0d2;
+}
+
+.untangle-anchor-disabled:link
+{
+    text-decoration: none;
 }
 
 .untangle-form
@@ -69,7 +113,18 @@
     color: #ff0e62;
     border-color: #ff0e62;
     display: block;
+    border-radius: 5%;
+    border-width: 3px;
+    width: 100%;
+    height: 100%;
+    
 }
+
+.form-label .untangle-form .floating-label
+{
+    color: #ff0e62;
+}
+
 
 .untangle-form::placeholder
 {
@@ -94,8 +149,6 @@ a:hover
     text-decoration:none; 
     cursor:pointer;  
 }
-
-
   
 .row 
 {
@@ -129,7 +182,7 @@ a:hover
 
 .bg-soft-magenta 
 {
-    background: #f5c0d2;
+    background-color: rgba(255, 14, 98, 0.08);
 }
 
 
@@ -159,4 +212,18 @@ a:hover
     {
         margin-left: 0rem;
     }
+    .untangle-signup
+    {
+        text-align: center;
+    }
+    .untangle-form
+    {
+        height: auto;
+    }
+    .login-img
+    {
+        height:100%;
+        width:100%;
+    }
+
 }
