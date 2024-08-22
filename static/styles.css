@@ -73,14 +73,29 @@
     text-align: center;
 }
 
-.login-img
+.signup-img
 {
     height: 60%;
     width: 50%;
     margin-top: 15%;
     right: 10%;
-    overflow: visible;
-    position: absolute;
+    position:fixed;
+    overflow: hidden;
+}
+
+.login-img
+{
+    right: 18%;
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.img-list
+{
+    height: 12%;
+    width: 12%;
+    padding: 2%;
 }
 
 .untangle-form-head
@@ -153,6 +168,8 @@ a:hover
 .row 
 {
     display: flex;
+    flex: auto;
+    overflow: hidden;
 }
   
   
@@ -161,6 +178,16 @@ a:hover
     flex: 50%;
     padding: 4%;
     height: 50%;
+}
+
+.column-2-media-active
+{
+    flex: 50%;
+}
+
+.column-2-media-disabled
+{
+    flex: 50%;
 }
 
 .column-3 
@@ -220,6 +247,15 @@ a:hover
     {
         height: auto;
     }
+    .signup-img
+    {
+        height:auto;
+        width:auto;
+        position:relative;
+        margin-top: auto;
+        right: auto;
+        display: none;
+    }
     .login-img
     {
         height:auto;
@@ -227,6 +263,17 @@ a:hover
         position:relative;
         margin-top: auto;
         right: auto;
+        display: none;
+    }
+    .column-2-media-active
+    {
+        flex: auto;
+        width: 100%;
+    }
+    .column-2-media-disabled
+    {
+        flex: none;
+        display: none;
     }
 
 }
