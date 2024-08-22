@@ -222,8 +222,11 @@ a:hover
     }
     .login-img
     {
-        height:100%;
-        width:100%;
+        height:auto;
+        width:auto;
+        position:relative;
+        margin-top: auto;
+        right: auto;
     }
 
 }
