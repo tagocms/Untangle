@@ -3,6 +3,8 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy import create_engine, text
 from functools import wraps
+from email_validator import validate_email, EmailNotValidError
+from string import ascii_letters, digits
 
 app = Flask(__name__)
 db = create_engine("sqlite+pysqlite:///untangle.db", echo=True)
@@ -42,6 +44,27 @@ def index():
 def webapp():
     return render_template("webapp.html")
 
+def validate_password(text):
+    count = 0
+    upper = 0
+    lower = 0
+    number = 0
+    special = 0
+    for letter in text:
+        count += 1
+        if letter.isnumeric():
+            number += 1
+        elif letter.isupper():
+            upper += 1
+        elif letter.islower():
+            lower += 1
+        elif not letter.isalnum() and not letter.isspace():
+            special += 1
+    if (count >= 8 and upper > 0 and lower > 0 and number > 0 and special > 0):
+        return True
+    else:
+        return False
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     
@@ -57,16 +80,24 @@ def signup():
         pass_c = request.form.get("confirmation")
 
         if not email:
-            return "error: missing email"
+             return render_template("signup.html", error="Missing email.")
         elif not pass_p:
-            return "error: missing password"
+            return render_template("signup.html", error="Missing password.")
+        elif not validate_password(pass_p):
+            return render_template("signup.html", error="Your password must at least be 8 characters long; have 1 uppercase character; 1 lowercase character; have 1 number; have 1 special character.")
         elif not pass_c or pass_p != pass_c:
-            return "error - passwords don't match"
+            return render_template("signup.html", error="Passwords don't match.")
+        
+        try:
+            emailinfo = validate_email(email, check_deliverability=True)
+            email = emailinfo.normalized
+        except EmailNotValidError:
+            return render_template("signup.html", error="Invalid email.")
 
         try:
             hash_p = generate_password_hash(pass_p)
         except:
-            return "error - unable to generate hash"
+            return render_template("signup.html", error="Unable to hash password. Try other characters.")
         
         with db.begin() as conn:
             result = conn.execute(text("SELECT id FROM users WHERE email = :email"), {"email": email})
@@ -76,7 +107,7 @@ def signup():
                 session["user_id"] = conn.execute(text("SELECT id FROM users WHERE email = :email"), {"email": email}).all()[0].id
                 print(session["user_id"])
             else:
-                return "error - user already exists"
+                return render_template("signup.html", error="User already exists.")
 
         return redirect("/webapp")
     else:
@@ -94,17 +125,17 @@ def login():
         pass_p = request.form.get("password")
 
         if not email:
-            return "error - must provide email"
+            return render_template("login.html", error="Missing email.")
         elif not pass_p:
-            return "error - must provide password"
+            return render_template("login.html", error="Missing password.")
         
         with db.begin() as conn:
             result = conn.execute(text("SELECT * FROM users WHERE email = :email"), {"email": email})
             rows = result.all()
             if not rows:
-                return "error - invalid email and/or password"
+                return render_template("login.html", error="Invalid email and/or password.")
             elif not check_password_hash(rows[0].hash, pass_p):
-                return "error - invalid email and/or password"
+                return render_template("login.html", error="Invalid email and/or password.")
         
         session["user_id"] = rows[0].id
 

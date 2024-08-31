@@ -5,7 +5,21 @@
 {% endblock %}
 
 {% block body_layout %}
-    <form action="/logout" >
-        <button class="content" style="padding: 5%; margin-top: 10%; margin-left: 10%;" type="submit">LOGOUT</button>
-    </form>
+<div class="row" style="margin: 0;">
+    <div class="column-3" style="flex: 10%; background-color: aqua; height: 100vh;">
+        <div class="webapp-text">
+            My Space
+        </div>
+        <form action="/logout" >
+            <button type="submit">LOGOUT</button>
+        </form>
+
+    </div>
+    <div class="column-3" style="flex: 50%; background-color: yellow; height: 100vh">
+        xxxx
+    </div>
+    <div class="column-3" style="flex: 25%; background-color: blue; height: 100vh">
+        xxxx
+    </div>
+</div> 
 {% endblock %}
