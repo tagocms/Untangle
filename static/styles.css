@@ -225,6 +225,23 @@ a:hover
     font-size: 133.33%;
 }
 
+.webapp-shadow
+{
+    box-shadow: 10px 0 5px -2px rgba(0, 0, 0, 0.5);
+}
+
+.small
+{
+    font-size: 100%;
+}
+
+.webapp-create:focus
+{
+    border-color: #ff0e62;
+    box-shadow: 0 0 0 .25rem rgba(255, 14, 98, 0.5);
+}
+
+
 @media (max-width: 1200px) 
 {
     .row 

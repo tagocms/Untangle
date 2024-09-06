@@ -31,19 +31,6 @@ def login_required(f):
 
     return decorated_function
 
-@app.route("/")
-def index():
-    if session.get("user_id"):
-        return redirect("/webapp")
-    else:
-        session.clear()
-    return render_template("index.html")
-
-@app.route("/webapp")
-@login_required
-def webapp():
-    return render_template("webapp.html")
-
 def validate_password(text):
     count = 0
     upper = 0
@@ -64,6 +51,24 @@ def validate_password(text):
         return True
     else:
         return False
+
+@app.route("/")
+def index():
+    if session.get("user_id"):
+        return redirect("/webapp")
+    else:
+        session.clear()
+    return render_template("index.html")
+
+@app.route("/webapp")
+@login_required
+def webapp():
+    return render_template("webapp.html")
+
+@app.route("/create")
+@login_required
+def create():
+    return render_template("webapp.html")
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
