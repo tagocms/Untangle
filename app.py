@@ -65,7 +65,7 @@ def index():
 def webapp():
     user_id = session.get("user_id")
     with db.begin() as conn:
-        result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND item_status = 0 ORDER BY datetime(Timestamp) DESC"), {"user_id": user_id})
+        result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY datetime(Timestamp) DESC"), {"user_id": user_id})
         rows = result.all()
     return render_template("webapp.html", items=rows)
 

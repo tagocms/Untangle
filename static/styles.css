@@ -247,6 +247,55 @@ a:hover
 }
 
 
+.webapp-task-p0
+{
+    border-color: #6f6f6f;
+    accent-color: #6f6f6f !important;
+}
+
+.webapp-task-p1
+{
+    border-color: #4d43b6;
+    accent-color: #4d43b6 !important;
+}
+
+.webapp-task-p2
+{
+    border-color: #a2bb34;
+    accent-color: #a2bb34 !important;
+}
+
+.webapp-task-p3
+{
+    border-color: #d42929;
+    accent-color: #d42929 !important;
+}
+
+.webapp-task-p0:focus
+{
+    border-color: #6f6f6f;
+    box-shadow: 0 0 0 .25rem rgba(111, 111, 111, 0.5);
+}
+
+.webapp-task-p1:focus
+{
+    border-color: #4d43b6;
+    box-shadow: 0 0 0 .25rem rgba(77, 67, 182, 0.5);
+}
+
+.webapp-task-p2:focus
+{
+    border-color: #a2bb34;
+    box-shadow: 0 0 0 .25rem rgba(162, 187, 52, 0.5);
+}
+
+.webapp-task-p3:focus
+{
+    border-color: #d42929;
+    box-shadow: 0 0 0 .25rem rgba(212, 41, 41, 0.5);
+}
+
+
 @media (max-width: 1200px) 
 {
     .row 
