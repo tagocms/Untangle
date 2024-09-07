@@ -241,6 +241,11 @@ a:hover
     box-shadow: 0 0 0 .25rem rgba(255, 14, 98, 0.5);
 }
 
+.webapp-item:hover
+{
+    background-color: rgba(100, 100, 100, 0.2);
+}
+
 
 @media (max-width: 1200px) 
 {

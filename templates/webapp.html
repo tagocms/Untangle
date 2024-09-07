@@ -26,13 +26,13 @@
         <form action="/create" method="post">
             <div class="input-group flex-nowrap shadow-sm">
                 <span class="input-group-text p-3 bg-body-tertiary rounded webapp-text" id="addon-wrapping">+</span>
-                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" placeholder="Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" name="create_item" placeholder="Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
             </div>
         </form>
         <div>
             <ul style="list-style-type: none; padding: 0%;">
                 {% for item in items %}
-                <li>{{ item.title }}</li>
+                <li class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;">{{ item.title }}</li>
                 {% endfor %}
             </ul>
         </div>

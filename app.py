@@ -63,12 +63,33 @@ def index():
 @app.route("/webapp")
 @login_required
 def webapp():
-    return render_template("webapp.html")
+    user_id = session.get("user_id")
+    with db.begin() as conn:
+        result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND item_status = 0 ORDER BY datetime(Timestamp) DESC"), {"user_id": user_id})
+        rows = result.all()
+    return render_template("webapp.html", items=rows)
 
-@app.route("/create")
+@app.route("/create", methods=["POST", "GET"])
 @login_required
 def create():
-    return render_template("webapp.html")
+    if request.method == "POST":
+        title = request.form.get("create_item")
+
+        if not title:
+            return redirect("/webapp")
+        
+        item_type = "task"
+        list = "inbox"
+        item_status = 0
+        user_id = session.get("user_id")
+
+        with db.begin() as conn:
+            conn.execute(text("INSERT INTO items (title, item_type, list, item_status, user_id) VALUES (:title, :item_type, :list, :item_status, :user_id)"), 
+                         {"title": title, "item_type": item_type, "list": list,"item_status": item_status ,"user_id": user_id})
+        
+        return redirect("/webapp")
+    else:
+        return redirect("/webapp")
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
