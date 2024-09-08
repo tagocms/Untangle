@@ -1,7 +1,7 @@
 {% extends "layout_webapp.html" %}
 
 {% block title %}
-    app
+    webapp
 {% endblock %}
 
 {% block body_layout %}
@@ -22,41 +22,71 @@
         </form>
 
     </div>
-    <div class="column-3 content" style="flex: 50%; height: 100vh; padding: 2%;">
+    <div class="column-3 content" style="flex: 50%; height: 100vh; padding: 2%; overflow: auto;">
         <form action="/create" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="input-group flex-nowrap shadow-sm">
-                <span class="input-group-text p-3 bg-body-tertiary rounded webapp-text" id="addon-wrapping">+</span>
-                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" name="create_item" placeholder="Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" name="create_item" placeholder="+Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
             </div>
         </form>
         <div>
             <ul style="list-style-type: none; padding: 0%;">
                 {% for item in items %}
+                <li>
                     {% if item.item_type == "note" %}
-                    <img src="/static/edit.png" alt="Notes" class="img-fluid img-list">
-                    <li class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;">{{ item.title }}</li>
+                        <div class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;" onclick="itemListener(event)" id="{{ item.id}}">
+                            <img src="/static/edit.png" alt="Notes" class="img-fluid img-list">
+                            {{ item.title }}
+                        </div>
                     {% elif item.item_type == "task" %}
                         {% if item.item_status == 0 %}
-                            {% if item.item_priority == none %}
-                                <input class="form-check-input webapp-task-p0" type="checkbox" value="">
+                            <div class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;" onclick="itemListener(event)" id="{{ item.id}}">
+                                {% if item.item_priority == none %}
+                                <input class="form-check-input webapp-task-p0" type="checkbox">
                             {% elif item.item_priority == 1 %}
-                                <input class="form-check-input webapp-task-p1" type="checkbox" value="">
+                                <input class="form-check-input webapp-task-p1" type="checkbox">
                             {% elif item.item_priority == 2 %}
-                                <input class="form-check-input webapp-task-p2" type="checkbox" value="">
+                                <input class="form-check-input webapp-task-p2" type="checkbox">
                             {% elif item.item_priority == 3 %}
-                                <input class="form-check-input webapp-task-p3" type="checkbox" value="">
+                                <input class="form-check-input webapp-task-p3" type="checkbox">
                             {% else %}
-                                <input class="form-check-input webapp-task-p0" type="checkbox" value="">
+                                <input class="form-check-input webapp-task-p0" type="checkbox">
                             {% endif %}
-                            <li class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;">{{ item.title }}</li>
+                            {{ item.title }}
+                            </div>
                         {% endif %}
                     {% endif %}
+                </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
     <div class="column-3 shadow bg-body content" style="flex: 25%; height: 100vh; padding: 2%;">
-        xxxx
+        <div class="webapp-text" id="item_title_display"></div>
+        <div class="webapp-text small" id="item_body_display"></div>
+        <div class="webapp-text small" id="item_priority_display"></div>
     </div>
 </div> 
+<script>
+    const itemsData = {{ items|tojson }};
+    console.log(itemsData); 
+
+    function itemListener(event) 
+    {
+        var trigger = event.srcElement;
+        id = parseInt(trigger.id);
+        var item = {};
+        for (let i = 0; i < itemsData.length; i++)
+        {
+            if (itemsData[i]["id"] == id)
+            {
+                item = itemsData[i];
+            }
+        }
+        document.querySelector("#item_title_display").innerHTML = item.title;
+        document.querySelector("#item_body_display").innerHTML = item.body;
+        document.querySelector("#item_priority_display").innerHTML = item.item_priority;
+        console.log(trigger.id); 
+    }
+</script>
 {% endblock %}

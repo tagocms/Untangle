@@ -271,6 +271,30 @@ a:hover
     accent-color: #d42929 !important;
 }
 
+.webapp-task-p0:checked 
+{
+    background-color: #6f6f6f !important;
+    border-color: #6f6f6f;
+}
+
+.webapp-task-p1:checked 
+{
+    background-color: #4d43b6 !important;
+    border-color: #4d43b6;
+}
+
+.webapp-task-p2:checked 
+{
+    background-color: #a2bb34 !important;
+    border-color: #a2bb34;
+}
+
+.webapp-task-p3:checked 
+{
+    background-color: #d42929 !important;
+    border-color: #d42929;
+}
+
 .webapp-task-p0:focus
 {
     border-color: #6f6f6f;
@@ -295,6 +319,29 @@ a:hover
     box-shadow: 0 0 0 .25rem rgba(212, 41, 41, 0.5);
 }
 
+::-webkit-scrollbar
+{
+    width: 10px;
+}
+
+::-webkit-scrollbar-track 
+{
+    background: rgba(111, 111, 111, 0.1);
+    border-radius: 10px;
+}
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb
+{
+    background: rgba(111, 111, 111, 0.3);
+    border-radius: 10px;
+}
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover 
+{
+    background: rgba(111, 111, 111, 0.5);
+}
 
 @media (max-width: 1200px) 
 {

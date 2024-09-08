@@ -17,6 +17,7 @@
                     <a class="untangle-anchor-disabled" href="/login"><b class="untangle-text-disabled">Log In</b></a>
                 </div>
                 <form action="/signup" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="form-floating mb-3">
                         <input autocomplete="off" autofocus class="form-control untangle-form" name="email" placeholder="E-mail" type="email" id="emailAddress">
                         <label class="form-label untangle-form" for="emailAddress" style="color:#ff0e62;">E-mail</label>

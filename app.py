@@ -5,6 +5,8 @@ from sqlalchemy import create_engine, text
 from functools import wraps
 from email_validator import validate_email, EmailNotValidError
 from string import ascii_letters, digits
+from flask_wtf.csrf import CSRFProtect
+import secrets
 
 app = Flask(__name__)
 db = create_engine("sqlite+pysqlite:///untangle.db", echo=True)
@@ -12,6 +14,9 @@ db = create_engine("sqlite+pysqlite:///untangle.db", echo=True)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+app.config['SECRET_KEY'] = secrets.token_urlsafe(16)
+csrf = CSRFProtect(app)
 
 @app.after_request
 def after_request(response):
@@ -66,8 +71,9 @@ def webapp():
     user_id = session.get("user_id")
     with db.begin() as conn:
         result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY datetime(Timestamp) DESC"), {"user_id": user_id})
-        rows = result.all()
-    return render_template("webapp.html", items=rows)
+        rows = result.mappings().all()
+    items = [dict(row) for row in rows]
+    return render_template("webapp.html", items=items)
 
 @app.route("/create", methods=["POST", "GET"])
 @login_required
@@ -91,6 +97,7 @@ def create():
     else:
         return redirect("/webapp")
 
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     
@@ -110,7 +117,9 @@ def signup():
         elif not pass_p:
             return render_template("signup.html", error="Missing password.")
         elif not validate_password(pass_p):
-            return render_template("signup.html", error="Your password must at least be 8 characters long; have 1 uppercase character; 1 lowercase character; have 1 number; have 1 special character.")
+            return render_template("signup.html", 
+                                   error="Your password must at least be 8 characters long; have 1 uppercase character; 1 lowercase character; have 1 number; have 1 special character.", 
+                                   csrf_token=(csrf.generate_csrf()))
         elif not pass_c or pass_p != pass_c:
             return render_template("signup.html", error="Passwords don't match.")
         
