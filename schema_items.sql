@@ -14,8 +14,9 @@ CREATE TABLE items (
 
 CREATE TABLE tags (
     item_id INTEGER NOT NULL, 
-    tags TEXT NOT NULL,
+    tag TEXT NOT NULL,
     FOREIGN KEY(item_id) REFERENCES items(id));
 
 CREATE INDEX items_id ON items(id);
 CREATE INDEX tags_item_id ON tags(item_id);
+CREATE INDEX tags_tag ON tags(tag);

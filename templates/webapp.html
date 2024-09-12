@@ -62,20 +62,26 @@
         </div>
     </div>
     <div class="column-3 shadow bg-body content" style="flex: 25%; height: 100vh; padding: 2%;">
-        <div class="webapp-text" id="item_title_display"></div>
+        <div class="webapp-text" >
+            <p id="item_title_display"></p>
+        </div>
+        <div class="webapp-text small" id="item_tags_display"></div>
         <div class="webapp-text small" id="item_body_display"></div>
         <div class="webapp-text small" id="item_priority_display"></div>
     </div>
 </div> 
 <script>
     const itemsData = {{ items|tojson }};
-    console.log(itemsData); 
+    console.log(itemsData);
+    const tagsData = {{ tags|tojson }}; 
+    console.log(tagsData)
 
     function itemListener(event) 
     {
         var trigger = event.srcElement;
         id = parseInt(trigger.id);
         var item = {};
+        var tags = [];
         for (let i = 0; i < itemsData.length; i++)
         {
             if (itemsData[i]["id"] == id)
@@ -83,7 +89,31 @@
                 item = itemsData[i];
             }
         }
+
+        for (let i = 0; i < tagsData.length; i++)
+        {
+            if (tagsData[i]["item_id"] == id)
+            {
+                tags.push(tagsData[i]["tag"]);
+            }
+        }
+
         document.querySelector("#item_title_display").innerHTML = item.title;
+        document.querySelector("#item_title_display").classList.add("webapp-item-title");
+
+        document.querySelector("#item_tags_display").innerHTML = "Tags:";
+        document.querySelector("#item_tags_display").classList.add("webapp-item-tags");
+
+        let ul = document.createElement("ul");
+        ul.classList.add("webapp-item-tags-ul")
+        for (let i = 0; i < tags.length; i++)
+        {
+            let li = document.createElement("li");
+            li.textContent = "#" + tags[i];
+            li.classList.add("webapp-item-tags-li")
+            ul.appendChild(li);
+        }
+        document.querySelector("#item_tags_display").appendChild(ul);
         document.querySelector("#item_body_display").innerHTML = item.body;
         document.querySelector("#item_priority_display").innerHTML = item.item_priority;
         console.log(trigger.id); 

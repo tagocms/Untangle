@@ -73,7 +73,14 @@ def webapp():
         result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY datetime(Timestamp) DESC"), {"user_id": user_id})
         rows = result.mappings().all()
     items = [dict(row) for row in rows]
-    return render_template("webapp.html", items=items)
+    with db.begin() as conn:
+        placeholders = ",".join([":item_id" + str(i) for i in range(len(items))])
+        query = f"SELECT * FROM tags WHERE item_id IN ({placeholders})"
+        params = {f"item_id{i}": item['id'] for i, item in enumerate(items)}
+        result = conn.execute(text(query), params)
+        rows = result.mappings().all()
+    tags = [dict(row) for row in rows]
+    return render_template("webapp.html", items=items, tags=tags)
 
 @app.route("/create", methods=["POST", "GET"])
 @login_required
