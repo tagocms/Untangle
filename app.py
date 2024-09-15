@@ -104,6 +104,31 @@ def create():
     else:
         return redirect("/webapp")
 
+@app.route("/update", methods=["POST", "GET"])
+@login_required
+def update():
+    if request.method == "POST":
+        data = request.get_json()
+        print("Received data:", data)  # Add this line to log received data
+        id = data["item_id"]
+        body = data["body_value"]
+        user_id = session.get("user_id")
+
+        if not body or not id:
+            return {"response": "Invalid data", "type": 400}
+
+        with db.begin() as conn:
+            rows = conn.execute(text("SELECT * FROM items WHERE id = :id and user_id = :user_id"), {"id": id, "user_id": user_id})
+            if not rows.all():
+                return {"response": "Item not found", "type": 400}
+
+        with db.begin() as conn:
+            conn.execute(text("UPDATE items SET body = :body WHERE id = :id"), {"id": id, "body": body})
+        
+        return {"response": "Update successful", "type": 200}
+    else:
+        return {"response": "No update", "type": 200}
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():

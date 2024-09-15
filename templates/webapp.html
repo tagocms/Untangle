@@ -6,6 +6,7 @@
 
 {% block body_layout %}
 <div class="row" style="margin: 0;">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="column-3 shadow bg-body content" style="flex: 10%; height: 100vh; padding: 2%;">
         <div class="webapp-text">
             <img src="/static/check.png" alt="User" class="img-fluid img-list">My Space
@@ -61,7 +62,7 @@
             </ul>
         </div>
     </div>
-    <div class="column-3 shadow bg-body content" style="flex: 25%; height: 100vh; padding: 2%;" id="edit_item_column">
+    <div class="column-3 shadow bg-body content edit_item_column" style="flex: 25%; height: 100vh; padding: 2%;">
         <div id="item_header_display">
             <div class="webapp-text small" id="item_check_display"></div>
             <div class="webapp-text small" id="item_deadline_display"></div>
@@ -76,8 +77,9 @@
 </div> 
 <script>
     const itemsData = {{ items|tojson }};
-    console.log(itemsData);
     const tagsData = {{ tags|tojson }}; 
-    console.log(tagsData)
+
+    window.addEventListener('resize', adjustTextareaHeight);
+    window.addEventListener('load', adjustTextareaHeight);
 </script>
 {% endblock %}
