@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from sqlalchemy import create_engine, text
@@ -104,30 +104,61 @@ def create():
     else:
         return redirect("/webapp")
 
+
 @app.route("/update", methods=["POST", "GET"])
 @login_required
 def update():
     if request.method == "POST":
         data = request.get_json()
-        print("Received data:", data)  # Add this line to log received data
+        print("Received data:", data) 
         id = data["item_id"]
         body = data["body_value"]
         user_id = session.get("user_id")
 
-        if not body or not id:
-            return {"response": "Invalid data", "type": 400}
+        if not id:
+            return jsonify({"response": "Invalid data", "type": 400})
 
         with db.begin() as conn:
-            rows = conn.execute(text("SELECT * FROM items WHERE id = :id and user_id = :user_id"), {"id": id, "user_id": user_id})
+            rows = conn.execute(text("SELECT * FROM items WHERE id = :id AND user_id = :user_id"), {"id": id, "user_id": user_id})
             if not rows.all():
-                return {"response": "Item not found", "type": 400}
+                return jsonify({"response": "Item not found", "type": 400})
 
         with db.begin() as conn:
             conn.execute(text("UPDATE items SET body = :body WHERE id = :id"), {"id": id, "body": body})
         
-        return {"response": "Update successful", "type": 200}
+        return jsonify({"response": "Update successful", "type": 200})
     else:
-        return {"response": "No update", "type": 200}
+        return jsonify({"response": "No update", "type": 200})
+
+
+@app.route("/read", methods=["POST", "GET"])
+@login_required
+def read():
+    if request.method == "POST":
+        data = request.get_json()
+        user_id = session.get("user_id")
+
+        with db.begin() as conn:
+            result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id"), {"user_id": user_id})
+            rows = result.mappings().all()
+        items = [dict(row) for row in rows]
+
+        with db.begin() as conn:
+            placeholders = ",".join([":item_id" + str(i) for i in range(len(items))])
+            query = f"SELECT * FROM tags WHERE item_id IN ({placeholders})"
+            params = {f"item_id{i}": item['id'] for i, item in enumerate(items)}
+            result = conn.execute(text(query), params)
+            rows = result.mappings().all()
+        tags = [dict(row) for row in rows]
+        
+        if data["type"] == "items":
+            return jsonify(items)
+        elif data["type"] == "tags":
+            return jsonify(tags)
+        else:
+            return jsonify({"response": "Item not found", "type": 400})
+    else:
+        return jsonify({"response": "No update", "type": 200})
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -150,8 +181,7 @@ def signup():
             return render_template("signup.html", error="Missing password.")
         elif not validate_password(pass_p):
             return render_template("signup.html", 
-                                   error="Your password must at least be 8 characters long; have 1 uppercase character; 1 lowercase character; have 1 number; have 1 special character.", 
-                                   csrf_token=(csrf.generate_csrf()))
+                                   error="Your password must at least be 8 characters long; have 1 uppercase character; 1 lowercase character; have 1 number; have 1 special character.")
         elif not pass_c or pass_p != pass_c:
             return render_template("signup.html", error="Passwords don't match.")
         
@@ -179,6 +209,7 @@ def signup():
         return redirect("/webapp")
     else:
         return render_template("signup.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

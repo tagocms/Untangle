@@ -76,10 +76,18 @@
     </div>
 </div> 
 <script>
-    const itemsData = {{ items|tojson }};
-    const tagsData = {{ tags|tojson }}; 
+    let itemsData = {{ items|tojson }};
+    let tagsData = {{ tags|tojson }};;
+
+    async function fetchData() 
+    {
+        itemsData = await readDatabase("items");
+        tagsData = await readDatabase("tags");
+        console.log(itemsData, tagsData);
+    }
 
     window.addEventListener('resize', adjustTextareaHeight);
     window.addEventListener('load', adjustTextareaHeight);
+    document.addEventListener('functionCalled', fetchData);
 </script>
 {% endblock %}
