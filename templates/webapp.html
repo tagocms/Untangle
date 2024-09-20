@@ -33,31 +33,31 @@
         <div>
             <ul style="list-style-type: none; padding: 0%;">
                 {% for item in items %}
+                {% if item.item_status == 0 %}
                 <li>
                     {% if item.item_type == "note" %}
-                        <div class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;" onclick="itemListener(event)" id="{{ item.id}}">
-                            <img src="/static/edit.png" alt="Notes" class="img-fluid img-list">
-                            {{ item.title }}
+                        <div class="shadow p-3  webapp-text rounded webapp-item" onclick="itemListener(event)" id="{{ item.id }}">
+                            <img src="/static/edit.png" alt="Notes">
+                            <div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         </div>
                     {% elif item.item_type == "task" %}
-                        {% if item.item_status == 0 %}
-                            <div class="shadow p-3  webapp-text rounded webapp-item", style="margin-top: 1%;" onclick="itemListener(event)" id="{{ item.id}}">
-                                {% if item.item_priority == none %}
-                                <input class="form-check-input webapp-task-p0" type="checkbox">
-                            {% elif item.item_priority == 1 %}
-                                <input class="form-check-input webapp-task-p1" type="checkbox">
-                            {% elif item.item_priority == 2 %}
-                                <input class="form-check-input webapp-task-p2" type="checkbox">
-                            {% elif item.item_priority == 3 %}
-                                <input class="form-check-input webapp-task-p3" type="checkbox">
-                            {% else %}
-                                <input class="form-check-input webapp-task-p0" type="checkbox">
-                            {% endif %}
-                            {{ item.title }}
-                            </div>
+                        <div class="shadow p-3  webapp-text rounded webapp-item" onclick="itemListener(event)" id="{{ item.id }}">
+                        {% if item.item_priority == none %}
+                            <input class="form-check-input webapp-task-p0" type="checkbox">
+                        {% elif item.item_priority == 1 %}
+                            <input class="form-check-input webapp-task-p1" type="checkbox">
+                        {% elif item.item_priority == 2 %}
+                            <input class="form-check-input webapp-task-p2" type="checkbox">
+                        {% elif item.item_priority == 3 %}
+                            <input class="form-check-input webapp-task-p3" type="checkbox">
+                        {% else %}
+                            <input class="form-check-input webapp-task-p0" type="checkbox">
                         {% endif %}
+                            <div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
+                        </div>
                     {% endif %}
                 </li>
+                {% endif %}
                 {% endfor %}
             </ul>
         </div>
@@ -84,10 +84,12 @@
         itemsData = await readDatabase("items");
         tagsData = await readDatabase("tags");
         console.log(itemsData, tagsData);
+        document.dispatchEvent(fetchDataCalled);
     }
 
     window.addEventListener('resize', adjustTextareaHeight);
     window.addEventListener('load', adjustTextareaHeight);
-    document.addEventListener('functionCalled', fetchData);
+    document.addEventListener('updateDatabaseCalled', fetchData);
+    document.addEventListener('fetchDataCalled', updateItemTitle);
 </script>
 {% endblock %}

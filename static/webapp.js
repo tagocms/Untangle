@@ -1,10 +1,12 @@
-const functionCalled = new Event('functionCalled');
+const updateDatabaseCalled = new Event('updateDatabaseCalled');
 const areaAdjusted = new Event('areaAdjusted');
+const fetchDataCalled = new Event('fetchDataCalled');
 const debouncedUpdateDatabase = debounce(updateDatabase, 250);
 let updateInProgress = false;
 
 async function itemListener(event) 
 {
+    resetItems();
     if (updateInProgress && document.querySelector(".webapp-textarea-body")) {
         await debouncedUpdateDatabase();
     }
@@ -12,6 +14,11 @@ async function itemListener(event)
     await fetchData();
 
     var trigger = event.srcElement;
+    if (trigger.children.length == 0)
+    {
+        trigger = trigger.parentElement;
+    }
+
     id = parseInt(trigger.id);
 
     var item = {};
@@ -63,6 +70,8 @@ async function itemListener(event)
     titleTextArea.style.height = titleTextArea.scrollHeight + 'px';
 
     document.querySelector("#item_header_display").classList.add("webapp-item-header");
+
+    //Adjusting tags
     document.querySelector("#item_tags_display").innerHTML = "Tags:";
     document.querySelector("#item_tags_display").classList.add("webapp-item-tags");
     let ul = document.createElement("ul");
@@ -74,13 +83,15 @@ async function itemListener(event)
         li.classList.add("webapp-item-tags-li")
         ul.appendChild(li);
     }
+    document.querySelector("#item_tags_display").appendChild(ul);
 
+    //Adjusting checkbox
     if (item.item_type == "task")
     {
         let input = document.createElement("input");
-        input.classList.add("form-check-input", "webapp-task-p" + String(item.item_priority));
         input.setAttribute("type", "checkbox");
         input.setAttribute("id", "check-item");
+        document.querySelector("#item_check_display").style.cssText = "";
         document.querySelector("#item_check_display").classList.add("check-display-border");
         if (!document.querySelector("#check-item"))
         {
@@ -90,24 +101,100 @@ async function itemListener(event)
         {
             document.querySelector("#item_check_display").replaceChild(input, document.querySelector("#check-item"));
         }
+        updateCheckBox();
     }
     if (item.item_type == "note" && document.querySelector("#check-item"))
     {
         document.querySelector("#item_check_display").removeChild(document.querySelector("#check-item"));
+        document.querySelector("#item_check_display").style.border = "none";
     }
-    document.querySelector("#item_tags_display").appendChild(ul);
-    if (!item.deadline)
+
+    // Adjusting the deadline date
+    if (!document.querySelector(".deadline-display"))
     {
-        document.querySelector("#item_deadline_display").innerHTML = "Add Date";
+        let deadlineDatePicker = document.createElement("input");
+        deadlineDatePicker.setAttribute("type", "date");
+        deadlineDatePicker.flatpickrInstance = flatpickr(deadlineDatePicker, {defaultDate: item.deadline});
+        deadlineDatePicker.setAttribute("placeholder", "YYYY-MM-DD");
+        deadlineDatePicker.classList.add("webapp-deadline");   
+        document.querySelector("#item_deadline_display").appendChild(deadlineDatePicker);
+        document.querySelector("#item_deadline_display").classList.add("deadline-display");
+        deadlineDatePicker.addEventListener("input", debouncedUpdate);
     }
     else
     {
-        document.querySelector("#item_deadline_display").innerHTML = item.deadline;
+        document.querySelector(".webapp-deadline").flatpickrInstance.clear();
     }
-    document.querySelector("#item_deadline_display").classList.add("deadline-display");
-    document.querySelector("#item_priority_display").innerHTML = "Priority: " + item.item_priority;
-    document.querySelector("#item_priority_display").classList.add("priority-display");
+    
+    if (item.deadline)
+    {
+        document.querySelector(".webapp-deadline").value = item.deadline;
+        document.querySelector(".webapp-deadline").flatpickrInstance.setDate(item.deadline);
+    }
+    else
+    {
+        document.querySelector(".webapp-deadline").value = "";
+    }
 
+
+    //Adjusting the item priority
+    if (item.item_type == "task")
+    {
+        if (!document.querySelector(".priority-display"))
+        {
+            let prioritySelect = document.createElement("select");
+            prioritySelect.classList.add("webapp-priority");
+            prioritySelect.setAttribute("name", "Priority");
+            document.querySelector("#item_priority_display").classList.add("priority-display");
+            document.querySelector("#item_priority_display").innerHTML = "Priority: ";
+            document.querySelector("#item_priority_display").appendChild(prioritySelect);
+            prioritySelect.addEventListener("input", debouncedUpdate);
+            document.querySelector(".webapp-priority").addEventListener("change", priorityColor);
+            document.querySelector(".webapp-priority").addEventListener("change", updateCheckBox);
+            for (let i = 0; i < 4; i++)
+                {
+                    let optionPrioritySelect = document.createElement("option");
+                    if (i == 0)
+                    {
+                        optionPrioritySelect.value = null;
+                        optionPrioritySelect.innerHTML = "None";
+                        optionPrioritySelect.classList.add("webapp-priority-option0");
+                    }
+                    else
+                    {
+                        optionPrioritySelect.value = i;
+                        optionPrioritySelect.classList.add("webapp-priority-option" + String(i));
+                        if (i == 1)
+                        {
+                            optionPrioritySelect.innerHTML = "Low";
+                        }
+                        else if (i == 2)
+                        {
+                            optionPrioritySelect.innerHTML = "Medium";
+                        }
+                        else if (i == 3)
+                        {
+                            optionPrioritySelect.innerHTML = "High";
+                        }
+                        else
+                        {
+                            optionPrioritySelect.innerHTML = "None";
+                        }
+                    }
+                    document.querySelector(".webapp-priority").appendChild(optionPrioritySelect);
+                }
+        }
+        document.querySelector(".webapp-priority").value = item.item_priority;
+        priorityColor();
+    }
+    if (item.item_type == "note" && document.querySelector(".priority-display"))
+    {
+        document.querySelector("#item_priority_display").innerHTML = "";
+        document.querySelector("#item_priority_display").className = "";
+        document.querySelector("#item-priority-display").classList.add("webapp-text", "small");
+    }
+    
+    //Adjusting the textarea for the body text
     let bodyTextArea = document.createElement("textarea");
     if (!document.querySelector(".webapp-textarea-body"))
     {
@@ -118,11 +205,10 @@ async function itemListener(event)
     }
 
     document.querySelector(".webapp-textarea-body").value = "";
-    console.log("Value before update:", document.querySelector(".webapp-textarea-body").value);
     document.querySelector(".webapp-textarea-body").value = item.body;
-    console.log("Value after update:", document.querySelector(".webapp-textarea-body").value);
 
     adjustTextareaHeight();
+    updateItemTitleSelected();
 }
 
 
@@ -155,7 +241,21 @@ async function updateDatabase()
     let itemId = document.querySelector(".edit_item_column").id.replace("edit_item_column", "");
     let bodyValue = document.querySelector(".webapp-textarea-body").value;
     let titleValue = document.querySelector(".webapp-textarea-title").value;
-    let payload = { item_id: itemId, body_value: bodyValue, title_value: titleValue };
+    let deadlineValue = document.querySelector(".webapp-deadline").value;
+    let priorityValue;
+    if (document.querySelector(".webapp-priority"))
+    {
+        priorityValue = document.querySelector(".webapp-priority").value;
+    }
+    else
+    {
+        priorityValue = null;
+    }
+    let payload = { item_id: itemId, 
+        body_value: bodyValue, 
+        title_value: titleValue, 
+        deadline_value: deadlineValue,
+        priority_value: priorityValue };
     console.log("Payload:", payload);
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -170,7 +270,7 @@ async function updateDatabase()
             body: JSON.stringify(payload)
         }
     ).then(response => response.json()).then(data => console.log(data));
-    document.dispatchEvent(functionCalled);
+    document.dispatchEvent(updateDatabaseCalled);
 }
 
 
@@ -212,4 +312,89 @@ async function debouncedUpdate()
     updateInProgress = true;
     await debouncedUpdateDatabase();
     updateInProgress = false;
+}
+
+
+function updateItemTitle()
+{
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        let item = document.getElementById(String(itemsData[i].id));
+        if (item)
+        {
+            item.children[1].innerHTML = itemsData[i].title;
+            item.children[0].className = "";
+            if (itemsData[i].item_type == "task")
+            {
+                if (itemsData[i].item_priority == null)
+                {
+                    item.children[0].classList.add("form-check-input", "webapp-task-p0");
+                }
+                else
+                {
+                    item.children[0].classList.add("form-check-input", "webapp-task-p" + String(itemsData[i].item_priority));
+                }
+            }
+        }
+    }
+}
+
+
+function updateItemTitleSelected()
+{
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        let itemDisplayed = document.querySelector("#edit_item_column" + String(itemsData[i].id));
+        let item = document.getElementById(String(itemsData[i].id));
+        if (itemDisplayed && item)
+        {
+            item.style.setProperty('background-color', 'rgba(100, 100, 100, 0.2)', 'important');
+        }
+    }
+}
+
+
+function resetItems()
+{
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        let item = document.getElementById(String(itemsData[i].id));
+        if (item)
+        {
+            item.style.cssText = ''; 
+        }
+    }
+}
+
+
+function priorityColor()
+{
+    const selectElement = document.querySelector(".webapp-priority");
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const color = window.getComputedStyle(selectedOption).color;
+    selectElement.style.color = color;
+}
+
+
+function updateCheckBox()
+{
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        let itemId = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
+        if (itemsData[i].id == itemId)
+        {
+            console.log("Item ID: ", itemId);
+            document.querySelector("#check-item").className = "";
+            document.querySelector("#check-item").classList.add("form-check-input");
+            if (itemsData[i].item_priority != null)
+            {
+                document.querySelector("#check-item").classList.add("webapp-task-p" + String(itemsData[i].item_priority));
+                console.log("Class: ", "webapp-task-p" + String(itemsData[i].item_priority));
+            }
+            else
+            {
+                document.querySelector("#check-item").classList.add("webapp-task-p0");
+            }
+        }
+    }
 }
