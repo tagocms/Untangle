@@ -113,6 +113,7 @@ def update():
         print("Received data:", data) 
         id = data["item_id"]
         body = data["body_value"]
+        title = data["title_value"]
         user_id = session.get("user_id")
 
         if not id:
@@ -124,7 +125,7 @@ def update():
                 return jsonify({"response": "Item not found", "type": 400})
 
         with db.begin() as conn:
-            conn.execute(text("UPDATE items SET body = :body WHERE id = :id"), {"id": id, "body": body})
+            conn.execute(text("UPDATE items SET body = :body, title = :title WHERE id = :id"), {"id": id, "body": body, "title": title})
         
         return jsonify({"response": "Update successful", "type": 200})
     else:

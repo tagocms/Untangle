@@ -334,16 +334,6 @@ a:hover
     box-shadow: 0 0 0 .25rem rgba(212, 41, 41, 0.5);
 }
 
-.webapp-item-title
-{
-    border-bottom: #D9D9D9 solid 2px;
-    white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    padding-bottom: 2%;
-    margin-bottom: 2%;
-}
-
 .webapp-item-tags
 {
     margin-bottom: 5%;
@@ -409,6 +399,30 @@ a:hover
     padding-right: 50%;
     padding-left: 5%;
     width: 65%;
+}
+
+.webapp-textarea-title
+{
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    padding-bottom: 2%;
+    margin-bottom: 2%;
+    font-size: 110%;
+    font-family: Lato;
+    width: 100%;
+    border: 0;
+    resize: none;
+    border-bottom: #D9D9D9 solid 2px;
+    color: #6f6f6f;
+    overflow: hidden;
+}
+
+.webapp-textarea-title:focus-visible
+{
+    border: none;
+    outline: none;
+    border-bottom: #D9D9D9 solid 2px;
 }
 
 .webapp-textarea-body

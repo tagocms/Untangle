@@ -1,15 +1,15 @@
 const functionCalled = new Event('functionCalled');
-let debouncedUpdate = debounce(updateDatabase, 1000);
+const areaAdjusted = new Event('areaAdjusted');
+const debouncedUpdateDatabase = debounce(updateDatabase, 250);
+let updateInProgress = false;
 
 async function itemListener(event) 
 {
-    await fetchData();
-    if (document.querySelector(".webapp-textarea-body"))
-    {
-        console.log("Updating database immediately");
-        updateDatabase();
-        debouncedUpdate();
+    if (updateInProgress && document.querySelector(".webapp-textarea-body")) {
+        await debouncedUpdateDatabase();
     }
+
+    await fetchData();
 
     var trigger = event.srcElement;
     id = parseInt(trigger.id);
@@ -34,8 +34,33 @@ async function itemListener(event)
     }
 
     document.querySelector('.edit_item_column').id = "edit_item_column" + item.id;
-    document.querySelector("#item_title_display").innerHTML = item.title;
-    document.querySelector("#item_title_display").classList.add("webapp-item-title");
+
+    let titleTextArea = document.createElement("textarea");
+    if (!document.querySelector(".webapp-textarea-title"))
+    {
+        titleTextArea.classList.add("webapp-textarea-title");
+        titleTextArea.rows = 1;
+        titleTextArea.wrap = "soft";
+        titleTextArea.spellcheck = "false";
+        titleTextArea.addEventListener("input", debouncedUpdate);
+        document.addEventListener("areaAdjusted", adjustTextareaHeight)
+        titleTextArea.addEventListener("keydown", function(key_event) {
+            if (key_event.key === "Enter") 
+            {
+                key_event.preventDefault();
+            }
+            });
+        titleTextArea.addEventListener("input", function(key_event) {
+            this.style.height = 'auto'; 
+            this.style.height = this.scrollHeight + 'px'; 
+            document.dispatchEvent(areaAdjusted);
+        });
+        document.querySelector("#item_title_display").appendChild(titleTextArea);
+    }
+    titleTextArea = document.querySelector(".webapp-textarea-title");
+    titleTextArea.style.cssText = '';
+    titleTextArea.value = item.title;
+    titleTextArea.style.height = titleTextArea.scrollHeight + 'px';
 
     document.querySelector("#item_header_display").classList.add("webapp-item-header");
     document.querySelector("#item_tags_display").innerHTML = "Tags:";
@@ -83,29 +108,21 @@ async function itemListener(event)
     document.querySelector("#item_priority_display").innerHTML = "Priority: " + item.item_priority;
     document.querySelector("#item_priority_display").classList.add("priority-display");
 
-    let textareaBody = document.createElement("textarea");
+    let bodyTextArea = document.createElement("textarea");
     if (!document.querySelector(".webapp-textarea-body"))
     {
-        textareaBody.classList.add("webapp-textarea-body");
-        document.querySelector("#item_body_display").appendChild(textareaBody);
-    }
-    else 
-    {
-        let existingTextarea = document.querySelector(".webapp-textarea-body");
-        existingTextarea.parentNode.removeChild(existingTextarea);
-        textareaBody.classList.add("webapp-textarea-body");
-        document.querySelector("#item_body_display").appendChild(textareaBody);
+        bodyTextArea.classList.add("webapp-textarea-body");
+        bodyTextArea.spellcheck = "false";
+        document.querySelector("#item_body_display").appendChild(bodyTextArea);
+        bodyTextArea.addEventListener("input", debouncedUpdate);
     }
 
     document.querySelector(".webapp-textarea-body").value = "";
+    console.log("Value before update:", document.querySelector(".webapp-textarea-body").value);
     document.querySelector(".webapp-textarea-body").value = item.body;
+    console.log("Value after update:", document.querySelector(".webapp-textarea-body").value);
+
     adjustTextareaHeight();
-    
-    let bodyTextArea = document.querySelector(".webapp-textarea-body");
-    if (bodyTextArea)
-    {
-        bodyTextArea.addEventListener("input", debouncedUpdate);
-    }
 }
 
 
@@ -137,7 +154,8 @@ async function updateDatabase()
 
     let itemId = document.querySelector(".edit_item_column").id.replace("edit_item_column", "");
     let bodyValue = document.querySelector(".webapp-textarea-body").value;
-    let payload = { item_id: itemId, body_value: bodyValue };
+    let titleValue = document.querySelector(".webapp-textarea-title").value;
+    let payload = { item_id: itemId, body_value: bodyValue, title_value: titleValue };
     console.log("Payload:", payload);
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -180,9 +198,18 @@ async function readDatabase(type)
 function debounce(func, delay) {
     let timeoutId;
     return function(...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            func.apply(this, args);
-        }, delay);
+        return new Promise((resolve) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                resolve(func.apply(this, args));
+            }, delay);
+        });
     };
+}
+
+async function debouncedUpdate() 
+{
+    updateInProgress = true;
+    await debouncedUpdateDatabase();
+    updateInProgress = false;
 }
