@@ -230,7 +230,7 @@ a:hover
 {
     font-family: Lato;
     color: #6f6f6f;
-    font-size: 133.33%;
+    font-size: 120%;
 }
 
 .webapp-shadow
@@ -360,7 +360,9 @@ a:hover
     color: #ff0e62;
     display: flex;
     align-items: center;
+    font-size: 80%;
     flex-shrink: 0; /* Prevent tags from shrinking */
+    position: relative;
 }
 
 .webapp-item-tags-li-input
@@ -370,6 +372,24 @@ a:hover
     border-radius: 7px;
     border: none;
     text-align: center;
+}
+
+.webapp-item-tags-li-input:hover
+{
+    background-color: rgba(255, 14, 98, 0.2);
+}
+
+.delete-btn {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    font-size: 70%;
+}
+
+.webapp-item-tags-li:hover .delete-btn {
+    display: block;
 }
 
 .webapp-item-tags-li-input-add
@@ -443,6 +463,46 @@ a:hover
     white-space: nowrap;
     padding-right: 0%;
     padding-left: 5%;
+}
+
+.webapp-list-select
+{
+    border: none;
+    border-radius: 7px;
+    color: #6f6f6f;
+}
+
+.webapp-list-select:hover
+{
+    background-color: rgba(255, 14, 98, 0.1);
+    border: none;
+    outline: none;
+}
+
+.webapp-list-select:focus-visible
+{
+    border: none;
+    outline: none;
+}
+
+.webapp-type-select
+{
+    border: none;
+    border-radius: 7px;
+    color: #6f6f6f;
+}
+
+.webapp-type-select:hover
+{
+    background-color: rgba(255, 14, 98, 0.1);
+    border: none;
+    outline: none;
+}
+
+.webapp-type-select:focus-visible
+{
+    border: none;
+    outline: none;
 }
 
 .webapp-priority
@@ -558,7 +618,7 @@ a:hover
     overflow-wrap: break-word;
     padding-bottom: 2%;
     margin-bottom: 2%;
-    font-size: 110%;
+    font-size: 100%;
     font-family: Lato;
     width: 100%;
     border: 0;
@@ -577,11 +637,11 @@ a:hover
 
 .webapp-textarea-body
 {
-    font-size: 100%;
+    font-size: 85%;
     font-family: Lato;
     color: #6f6f6f;
     width: 100%;
-    border: 0;
+    border: #D9D9D9 solid 1px;
     resize: none;
     flex-grow: 1;
     height: 100vh;
@@ -594,6 +654,44 @@ a:hover
 {
     border: #D9D9D9 solid 1px;
     outline: none;
+}
+
+#item_footer_display
+{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.webapp-delete-image
+{
+    align-self: flex-end;
+}
+
+.webapp-delete-image:hover
+{
+    background-color: rgba(255, 14, 98, 0.1);
+}
+
+#item_list_display
+{
+    flex: 1;
+}
+
+#item_type_display
+{
+    flex: 1;
+}
+
+#item_delete_display
+{
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+#item_footer_display, #item_footer_display * 
+{
+    box-sizing: border-box;
 }
 
 ::-webkit-scrollbar

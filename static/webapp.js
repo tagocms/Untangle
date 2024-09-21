@@ -23,6 +23,7 @@ async function itemListener(event)
 
     var item = {};
     var tags = [];
+    var lists = {};
 
     for (let i = 0; i < itemsData.length; i++)
     {
@@ -39,6 +40,11 @@ async function itemListener(event)
             tags.push(tagsData[i]["tag"]);
         }
     }
+
+    for (let i = 0; i < listsData.length; i++)
+        {
+            lists[listsData[i]["id"]] = listsData[i]["list_name"]
+        }
 
     document.querySelector('.edit_item_column').id = "edit_item_column" + item.id;
 
@@ -209,6 +215,71 @@ async function itemListener(event)
     document.querySelector(".webapp-textarea-body").value = "";
     document.querySelector(".webapp-textarea-body").value = item.body;
 
+    //Adjusting the footer
+
+    //Adjusting the list selection
+    let listDisplay = document.querySelector("#item_list_display");
+    let listSelect = document.createElement("select");
+    if (!document.querySelector(".webapp-list-display"))
+    {
+        listDisplay.classList.add("webapp-list-display");
+        listSelect.classList.add("webapp-list-select");
+        listSelect.setAttribute("name", "List");
+        listDisplay.innerHTML = "List: ";
+        listDisplay.appendChild(listSelect);
+        listSelect.addEventListener("input", debouncedUpdate);
+        for (let i = 0; i < listsData.length; i++)
+        {
+            let optionListSelect = document.createElement("option");
+            optionListSelect.value = listsData[i]["list_name"];
+            optionListSelect.innerHTML = listsData[i]["list_name"];
+            listSelect.appendChild(optionListSelect);
+        }
+        document.dispatchEvent(areaAdjusted);
+        listSelect.addEventListener("input", debouncedUpdate);
+
+    }
+    document.querySelector(".webapp-list-select").value = item.list;
+
+    //Adjusting the type selection
+    let typeDisplay = document.querySelector("#item_type_display");
+    let typeSelect = document.createElement("select");
+    if (!document.querySelector(".webapp-type-display"))
+    {
+        let types = ["note", "task"];
+        typeDisplay.classList.add("webapp-type-display");
+        typeSelect.classList.add("webapp-type-select");
+        typeSelect.setAttribute("name", "Type");
+        typeDisplay.innerHTML = "Type: ";
+        typeDisplay.appendChild(typeSelect);
+        typeSelect.addEventListener("input", debouncedUpdate);
+        for (let i = 0; i < types.length; i++)
+        {
+            let optionTypeSelect = document.createElement("option");
+            optionTypeSelect.value = types[i];
+            optionTypeSelect.innerHTML = types[i][0].toUpperCase() + types[i].slice(1);
+            typeSelect.appendChild(optionTypeSelect);
+        }
+        document.dispatchEvent(areaAdjusted);
+        typeSelect.addEventListener("input", debouncedUpdate);
+    }
+    document.querySelector(".webapp-type-select").value = item.item_type;
+
+    //Adjusting the delete display
+    let deleteImage = document.createElement("img");
+    let deleteDisplay = document.querySelector("#item_delete_display");
+    deleteDisplay.innerHTML = "";
+    deleteDisplay.className = "";
+    if (!document.querySelector(".webapp-delete"))
+    {
+        deleteImage.setAttribute("src", "/static/untangle-trash.png");
+        deleteImage.classList.add("webapp-delete-image");
+        deleteDisplay.classList.add("webapp-delete");
+        deleteImage.style.height = deleteDisplay.scrollHeight + "px";
+        deleteDisplay.appendChild(deleteImage);
+        deleteImage.addEventListener("click", deleteItem);
+    }
+
     adjustTextareaHeight();
     updateItemTitleSelected();
 }
@@ -219,11 +290,14 @@ function adjustTextareaHeight()
     const headerHeight = (
         document.querySelector('#item_header_display').offsetHeight + 
         document.querySelector('#item_title_display').offsetHeight + 
-        document.querySelector('#item_tags_display').offsetHeight);
+        document.querySelector('#item_tags_display').offsetHeight +
+        document.querySelector('#item_footer_display').offsetHeight);
     const headerMargin = (
         parseFloat(getComputedStyle(document.querySelector('#item_header_display')).marginBottom) +
         parseFloat(getComputedStyle(document.querySelector('#item_title_display')).marginBottom) +
-        parseFloat(getComputedStyle(document.querySelector('#item_tags_display')).marginBottom)
+        parseFloat(getComputedStyle(document.querySelector('#item_tags_display')).marginBottom) +
+        parseFloat(getComputedStyle(document.querySelector('#item_footer_display')).marginBottom)
+        +parseFloat(getComputedStyle(document.querySelector('#item_footer_display')).marginTop)
     );
     const containerPadding = parseFloat(getComputedStyle(document.querySelector('.edit_item_column')).padding);
     const viewportHeight = window.innerHeight;
@@ -232,7 +306,7 @@ function adjustTextareaHeight()
     
     if (textarea)
     {
-        textarea.style.height = `${Math.max(0, maxHeight)}px`;
+        textarea.style.height = `${Math.max(0, maxHeight-10)}px`;
     }
 }
 
@@ -258,14 +332,23 @@ async function updateDatabase()
     let tagsList = [];
     for (let i = 0; i < tagsLi.length; i++)
     {
-        tagsList.push(tagsLi[i].children[1]);
+        let tagValue = tagsLi[i].children[0].value;
+        if (tagValue)
+        {
+            tagsList.push(tagValue);
+        }
     }
+    let listName = document.querySelector(".webapp-list-select").value;
+    let typeValue = document.querySelector(".webapp-type-select").value;
+
     let payload = { item_id: itemId, 
         body_value: bodyValue, 
         title_value: titleValue, 
         deadline_value: deadlineValue,
         priority_value: priorityValue,
-        tags_list: tagsList };
+        tags_list: tagsList,
+        list_name: listName,
+        type_value: typeValue };
     console.log("Payload:", payload);
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -413,6 +496,8 @@ function addTagLiToUl(tag)
     li.classList.add("webapp-item-tags-li");
     let inputLi = document.createElement("input");
     inputLi.setAttribute("type", "text");
+    inputLi.setAttribute("maxlength", "30");
+    inputLi.setAttribute("disabled", "true");
     inputLi.classList.add("webapp-item-tags-li-input");
     inputLi.value = tag;
 
@@ -433,6 +518,16 @@ function addTagLiToUl(tag)
     li.appendChild(inputLi);
     document.querySelector(".webapp-item-tags-ul").appendChild(li);
 
+    let deleteBtn = document.createElement("span");
+    deleteBtn.classList.add("delete-btn");
+    deleteBtn.textContent = "X";
+    li.appendChild(deleteBtn);
+
+    deleteBtn.addEventListener("click", function() {
+        li.remove();
+        debouncedUpdate();
+    });
+    
     inputLi.addEventListener("input", function () {
         // Create a temporary span to measure the text width
         let tempSpan = document.createElement("span");
@@ -459,7 +554,8 @@ function createAddTagLiToUl()
     addTagLi.classList.add("webapp-item-tags-li");
     let addTagInput = document.createElement("input");
     addTagInput.setAttribute("type", "text");
-    addTagInput.setAttribute("placeholder", "+add tag");
+    addTagInput.setAttribute("maxlength", "30");
+    addTagInput.setAttribute("placeholder", "+ add tag");
     addTagInput.classList.add("webapp-item-tags-li-input-add")
 
     // Create a temporary span to measure the text width
@@ -508,11 +604,74 @@ function createAddTagLiToUl()
     addTagInput.addEventListener("keydown", function(key_event) {
         if (key_event.key === "Enter") 
         {
-            let parentLi = addTagLi.parentNode;
-            parentLi.removeChild(addTagLi);
-            addTagLiToUl(addTagInput.value);
-            createAddTagLiToUl();
-            document.dispatchEvent(areaAdjusted);
+            let itemId = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
+            let flag = false;
+            for (let i = 0; i < tagsData.length; i++)
+            {
+                if (addTagInput.value == tagsData[i].tag && itemId == tagsData[i].item_id)
+                {
+                    flag = true;
+                }
+            }
+            if (!flag)
+            {
+                let parentLi = addTagLi.parentNode;
+                parentLi.removeChild(addTagLi);
+                addTagLiToUl(addTagInput.value);
+                createAddTagLiToUl();
+                document.dispatchEvent(areaAdjusted);
+                debouncedUpdate();
+            }  
         }
         });
+}
+
+async function deleteItem()
+{
+    console.log("deleteItem called");
+
+    let itemId = document.querySelector(".edit_item_column").id.replace("edit_item_column", "");
+    let payload = { item_id: itemId };
+    console.log("Payload:", payload);
+    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    await fetch("/delete", 
+        {
+            method: "POST", 
+            headers: 
+            {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify(payload)
+        }
+    ).then(response => response.json()).then(data => console.log(data));
+
+    deleteFromScreen()
+
+    document.dispatchEvent(updateDatabaseCalled);
+}
+
+
+function deleteFromScreen()
+{
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        let itemDisplayed = document.querySelector("#edit_item_column" + String(itemsData[i].id));
+        let item = document.getElementById(String(itemsData[i].id));
+        if (item)
+        {
+            let parentItem = item.parentNode;
+            parentItem.removeChild(item); 
+        }
+    }
+    document.querySelector("#item_check_display").innerHTML = "";
+    document.querySelector("#item_deadline_display").innerHTML = "";
+    document.querySelector("#item_priority_display").innerHTML = "";
+    document.querySelector("#item_title_display").innerHTML = "";
+    document.querySelector("#item_tags_display").innerHTML = "";
+    document.querySelector("#item_body_display").innerHTML = "";
+    document.querySelector("#item_list_display").innerHTML = "";
+    document.querySelector("#item_type_display").innerHTML = "";
+    document.querySelector("#item_delete_display").innerHTML = "";
 }

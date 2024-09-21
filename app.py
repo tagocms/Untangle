@@ -69,10 +69,12 @@ def index():
 @login_required
 def webapp():
     user_id = session.get("user_id")
+
     with db.begin() as conn:
         result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id})
         rows = result.mappings().all()
     items = [dict(row) for row in rows]
+
     with db.begin() as conn:
         placeholders = ",".join([":item_id" + str(i) for i in range(len(items))])
         query = f"SELECT * FROM tags WHERE item_id IN ({placeholders})"
@@ -80,7 +82,13 @@ def webapp():
         result = conn.execute(text(query), params)
         rows = result.mappings().all()
     tags = [dict(row) for row in rows]
-    return render_template("webapp.html", items=items, tags=tags)
+
+    with db.begin() as conn:
+            result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id"), {"user_id": user_id})
+            rows = result.mappings().all()
+    lists = [dict(row) for row in rows]
+    
+    return render_template("webapp.html", items=items, tags=tags, lists=lists)
 
 @app.route("/create", methods=["POST", "GET"])
 @login_required
@@ -92,7 +100,7 @@ def create():
             return redirect("/webapp")
         
         item_type = "task"
-        list = "inbox"
+        list = "Inbox"
         item_status = 0
         user_id = session.get("user_id")
 
@@ -104,6 +112,20 @@ def create():
     else:
         return redirect("/webapp")
 
+
+@app.route("/delete", methods=["POST", "GET"])
+@login_required
+def delete():
+    if request.method == "POST":
+        data = request.get_json()
+        id = data["item_id"]
+
+        with db.begin() as conn:
+            conn.execute(text("DELETE FROM items WHERE id = :id"), {"id": id})
+
+        return jsonify({"response": "Update successful", "type": 200})
+    else:
+        return jsonify({"response": "No update", "type": 200})
 
 @app.route("/update", methods=["POST", "GET"])
 @login_required
@@ -117,6 +139,8 @@ def update():
         deadline = data["deadline_value"]
         priority = data["priority_value"]
         tags = data["tags_list"]
+        list = data["list_name"]
+        item_type = data["type_value"]
         user_id = session.get("user_id")
 
         if not id:
@@ -128,13 +152,35 @@ def update():
                 return jsonify({"response": "Item not found", "type": 400})
 
         with db.begin() as conn:
-            conn.execute(text("UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority WHERE id = :id"), 
-                         {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority})
-        with db.begin() as conn:
-            placeholders = ",".join([":item_id" + str(i) for i in range(len(tags))])
-            query = f"SELECT * FROM tags WHERE item_id IN ({placeholders})"
-            params = {f"item_id{i}": item['id'] for i, item in enumerate(items)}
-            result = conn.execute(text(query), params)
+            conn.execute(
+                text(
+                "UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority, list = :list, item_type = :item_type WHERE id = :id"
+                ), 
+                {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority, "list": list, "item_type": item_type}
+                )
+        
+        if tags:
+            tags_adj = []
+            for i in range(len(tags)):
+                count = 0
+                for j in range(i, len(tags)):
+                    if tags[i] == tags[j]:
+                        count += 1
+                if count == 1 and len(tags[i]) <= 30:
+                     tags_adj.append(tags[i])
+        
+            tags = tags_adj
+        
+        if tags:
+            with db.begin() as conn:
+                    conn.execute(text("DELETE FROM tags WHERE item_id = :item_id"), {"item_id": id})
+
+                    placeholders = ",".join([f"(:item_id{i}, :tag{i})" for i in range(len(tags))])
+                    query = f"INSERT INTO tags (item_id, tag) VALUES {placeholders}"
+                    params_ids = {f"item_id{i}": id for i in  range(len(tags))}
+                    params_tags = {f"tag{i}": tags[i] for i in range(len(tags))}
+                    params = {**params_ids, **params_tags}
+                    conn.execute(text(query), params)
         
         return jsonify({"response": "Update successful", "type": 200})
     else:
@@ -160,11 +206,18 @@ def read():
             result = conn.execute(text(query), params)
             rows = result.mappings().all()
         tags = [dict(row) for row in rows]
+
+        with db.begin() as conn:
+            result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id"), {"user_id": user_id})
+            rows = result.mappings().all()
+        lists = [dict(row) for row in rows]
         
         if data["type"] == "items":
             return jsonify(items)
         elif data["type"] == "tags":
             return jsonify(tags)
+        elif data["type"] == "lists":
+            return jsonify(lists)
         else:
             return jsonify({"response": "Item not found", "type": 400})
     else:
@@ -212,6 +265,7 @@ def signup():
             if not rows:
                 conn.execute(text("INSERT INTO users (email, hash) VALUES (:email, :hash_p)"), {"email": email, "hash_p": hash_p})
                 session["user_id"] = conn.execute(text("SELECT id FROM users WHERE email = :email"), {"email": email}).all()[0].id
+                conn.execute(text("INSERT INTO lists (list_name, user_id) VALUES (:list_name, :user_id)"), {"list_name": "Inbox", "user_id": session["user_id"]})
                 print(session["user_id"])
             else:
                 return render_template("signup.html", error="User already exists.")

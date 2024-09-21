@@ -27,7 +27,7 @@
         <form action="/create" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="input-group flex-nowrap shadow-sm">
-                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" name="create_item" placeholder="+Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" name="create_item" placeholder="+ Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
             </div>
         </form>
         <div>
@@ -73,17 +73,24 @@
         </div>
         <div class="webapp-text small" id="item_tags_display"></div>
         <div class="webapp-text" id="item_body_display"></div>
+        <div id="item_footer_display">
+            <div class="webapp-text small" id="item_list_display"></div>
+            <div class="webapp-text small" id="item_type_display"></div>
+            <div class="webapp-text small" id="item_delete_display"></div>
+        </div>
     </div>
 </div> 
 <script>
     let itemsData = {{ items|tojson }};
-    let tagsData = {{ tags|tojson }};;
+    let tagsData = {{ tags|tojson }};
+    let listsData = {{ lists|tojson }};
 
     async function fetchData() 
     {
         itemsData = await readDatabase("items");
         tagsData = await readDatabase("tags");
-        console.log(itemsData, tagsData);
+        listsData = await readDatabase("lists");
+        console.log(itemsData, tagsData, listsData);
         document.dispatchEvent(fetchDataCalled);
     }
 
