@@ -116,6 +116,7 @@ def update():
         title = data["title_value"]
         deadline = data["deadline_value"]
         priority = data["priority_value"]
+        tags = data["tags_list"]
         user_id = session.get("user_id")
 
         if not id:
@@ -129,6 +130,11 @@ def update():
         with db.begin() as conn:
             conn.execute(text("UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority WHERE id = :id"), 
                          {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority})
+        with db.begin() as conn:
+            placeholders = ",".join([":item_id" + str(i) for i in range(len(tags))])
+            query = f"SELECT * FROM tags WHERE item_id IN ({placeholders})"
+            params = {f"item_id{i}": item['id'] for i, item in enumerate(items)}
+            result = conn.execute(text(query), params)
         
         return jsonify({"response": "Update successful", "type": 200})
     else:

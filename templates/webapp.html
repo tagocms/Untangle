@@ -69,7 +69,7 @@
             <div class="webapp-text small" id="item_priority_display"></div>
         </div>
         <div class="webapp-text" >
-            <p id="item_title_display"></p>
+            <div id="item_title_display"></div>
         </div>
         <div class="webapp-text small" id="item_tags_display"></div>
         <div class="webapp-text" id="item_body_display"></div>
@@ -91,5 +91,6 @@
     window.addEventListener('load', adjustTextareaHeight);
     document.addEventListener('updateDatabaseCalled', fetchData);
     document.addEventListener('fetchDataCalled', updateItemTitle);
+    document.addEventListener('fetchDataCalled', updateCheckBox);
 </script>
 {% endblock %}

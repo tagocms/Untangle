@@ -342,33 +342,72 @@ a:hover
     box-shadow: 0 0 0 .25rem rgba(212, 41, 41, 0.5);
 }
 
+#item_tags_display 
+{
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    flex-wrap: wrap;
+}
+
 .webapp-item-tags
 {
     margin-bottom: 5%;
     border-bottom: #D9D9D9 solid 1px;
-    padding-bottom: 2%;
 }
 
-#item_tags_display
-{
-    white-space: nowrap;
-}
-
-.webapp-item-tags-li
+.webapp-item-tags-li 
 {
     color: #ff0e62;
-    margin-right: 3%;
-    display: inline-block;
-    background-color: rgba(255, 14, 98, 0.1);
-    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0; /* Prevent tags from shrinking */
 }
 
-.webapp-item-tags-ul
+.webapp-item-tags-li-input
 {
+    color: #ff0e62;
+    background-color: rgba(255, 14, 98, 0.1);
+    border-radius: 7px;
+    border: none;
+    text-align: center;
+}
+
+.webapp-item-tags-li-input-add
+{
+    color: #6f6f6f;
+    border-radius: 7px;
+    border:#6f6f6f solid 1px;
+    text-align: center;
+}
+
+.webapp-item-tags-li-input-add:focus
+{
+    outline-color: #6f6f6f;
+}
+
+.webapp-item-tags-li-input-add:focus-visible
+{
+    outline-color: #6f6f6f;
+}
+
+.webapp-item-tags-li-input:focus
+{
+    outline-color: #ff0e62;
+}
+
+.webapp-item-tags-li-input:focus-visible
+{
+    outline-color: #ff0e62;
+}
+
+.webapp-item-tags-ul 
+{
+    display: flex;
+    flex-wrap: wrap;
     list-style-type: none;
-    display: inline;
     padding: 0;
     margin-left: 3%;
+    gap: 5px;
 }
 
 .webapp-item-header
@@ -381,9 +420,8 @@ a:hover
 
 .priority-display
 {
-    display: inline-block;
     text-align: end;
-    width: 20%;
+    flex: 5%;
 }
 
 .check-display-border
@@ -391,23 +429,20 @@ a:hover
     border-right: #D9D9D9 solid 1px;
     padding-right: 5%;
     white-space: nowrap;
-    display: flex;
     width: 10%;
 }
 
 #item_check_display
 {
     white-space: nowrap;
-    display: flex;
 }
 
 .deadline-display
 {
-    display: flex;
+    flex: 20%;
     white-space: nowrap;
     padding-right: 0%;
     padding-left: 5%;
-    width: 60%;
 }
 
 .webapp-priority
@@ -455,6 +490,7 @@ a:hover
     border: none;
     color: #ff0e62;
     border-radius: 7px;
+    width: 70%;
 }
 
 .webapp-deadline:hover

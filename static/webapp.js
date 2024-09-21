@@ -72,18 +72,24 @@ async function itemListener(event)
     document.querySelector("#item_header_display").classList.add("webapp-item-header");
 
     //Adjusting tags
-    document.querySelector("#item_tags_display").innerHTML = "Tags:";
+    document.querySelector("#item_tags_display").innerHTML = "";
     document.querySelector("#item_tags_display").classList.add("webapp-item-tags");
+
     let ul = document.createElement("ul");
-    ul.classList.add("webapp-item-tags-ul")
-    for (let i = 0; i < tags.length; i++)
-    {
-        let li = document.createElement("li");
-        li.textContent = "#" + tags[i];
-        li.classList.add("webapp-item-tags-li")
-        ul.appendChild(li);
-    }
+    ul.classList.add("webapp-item-tags-ul");
     document.querySelector("#item_tags_display").appendChild(ul);
+    for (let i = 0; i < tags.length + 1; i++)
+    {
+        if (tags[i])
+        {
+            addTagLiToUl(tags[i]);
+        }
+        else
+        {
+            createAddTagLiToUl();
+        }
+        
+    }
 
     //Adjusting checkbox
     if (item.item_type == "task")
@@ -97,10 +103,7 @@ async function itemListener(event)
         {
             document.querySelector("#item_check_display").appendChild(input);
         }
-        else
-        {
-            document.querySelector("#item_check_display").replaceChild(input, document.querySelector("#check-item"));
-        }
+        console.log("ID:", document.querySelector("#check-item"));
         updateCheckBox();
     }
     if (item.item_type == "note" && document.querySelector("#check-item"))
@@ -150,7 +153,6 @@ async function itemListener(event)
             document.querySelector("#item_priority_display").appendChild(prioritySelect);
             prioritySelect.addEventListener("input", debouncedUpdate);
             document.querySelector(".webapp-priority").addEventListener("change", priorityColor);
-            document.querySelector(".webapp-priority").addEventListener("change", updateCheckBox);
             for (let i = 0; i < 4; i++)
                 {
                     let optionPrioritySelect = document.createElement("option");
@@ -187,11 +189,11 @@ async function itemListener(event)
         document.querySelector(".webapp-priority").value = item.item_priority;
         priorityColor();
     }
-    if (item.item_type == "note" && document.querySelector(".priority-display"))
+    else if (item.item_type == "note" && document.querySelector(".priority-display"))
     {
         document.querySelector("#item_priority_display").innerHTML = "";
         document.querySelector("#item_priority_display").className = "";
-        document.querySelector("#item-priority-display").classList.add("webapp-text", "small");
+        document.querySelector("#item_priority_display").classList.add("webapp-text", "small");
     }
     
     //Adjusting the textarea for the body text
@@ -251,11 +253,19 @@ async function updateDatabase()
     {
         priorityValue = null;
     }
+    let tagsUl = document.querySelector(".webapp-item-tags-ul");
+    let tagsLi = tagsUl.querySelectorAll("li");
+    let tagsList = [];
+    for (let i = 0; i < tagsLi.length; i++)
+    {
+        tagsList.push(tagsLi[i].children[1]);
+    }
     let payload = { item_id: itemId, 
         body_value: bodyValue, 
         title_value: titleValue, 
         deadline_value: deadlineValue,
-        priority_value: priorityValue };
+        priority_value: priorityValue,
+        tags_list: tagsList };
     console.log("Payload:", payload);
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -326,7 +336,7 @@ function updateItemTitle()
             item.children[0].className = "";
             if (itemsData[i].item_type == "task")
             {
-                if (itemsData[i].item_priority == null)
+                if (itemsData[i].item_priority == "null")
                 {
                     item.children[0].classList.add("form-check-input", "webapp-task-p0");
                 }
@@ -381,15 +391,13 @@ function updateCheckBox()
     for (let i = 0; i < itemsData.length; i++)
     {
         let itemId = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
-        if (itemsData[i].id == itemId)
+        if (itemsData[i].id == itemId && itemsData[i].item_type == "task")
         {
-            console.log("Item ID: ", itemId);
             document.querySelector("#check-item").className = "";
             document.querySelector("#check-item").classList.add("form-check-input");
-            if (itemsData[i].item_priority != null)
+            if (itemsData[i].item_priority != "null")
             {
                 document.querySelector("#check-item").classList.add("webapp-task-p" + String(itemsData[i].item_priority));
-                console.log("Class: ", "webapp-task-p" + String(itemsData[i].item_priority));
             }
             else
             {
@@ -397,4 +405,114 @@ function updateCheckBox()
             }
         }
     }
+}
+
+function addTagLiToUl(tag)
+{
+    let li = document.createElement("li");
+    li.classList.add("webapp-item-tags-li");
+    let inputLi = document.createElement("input");
+    inputLi.setAttribute("type", "text");
+    inputLi.classList.add("webapp-item-tags-li-input");
+    inputLi.value = tag;
+
+    // Create a temporary span to measure the text width
+    let tempSpan = document.createElement("span");
+    tempSpan.style.visibility = "hidden";
+    tempSpan.style.position = "absolute";
+    tempSpan.style.whiteSpace = "nowrap";
+    tempSpan.textContent = inputLi.value;
+    document.body.appendChild(tempSpan);
+
+    // Set the input width to the span's width
+    inputLi.style.width = (tempSpan.offsetWidth + 10) + 'px';
+
+    // Clean up the temporary span
+    document.body.removeChild(tempSpan);
+
+    li.appendChild(inputLi);
+    document.querySelector(".webapp-item-tags-ul").appendChild(li);
+
+    inputLi.addEventListener("input", function () {
+        // Create a temporary span to measure the text width
+        let tempSpan = document.createElement("span");
+        tempSpan.style.visibility = "hidden";
+        tempSpan.style.position = "absolute";
+        tempSpan.style.whiteSpace = "nowrap";
+        tempSpan.textContent = inputLi.value;
+        document.body.appendChild(tempSpan);
+
+        // Set the input width to the span's width
+        inputLi.style.width = (tempSpan.offsetWidth + 10) + 'px';
+
+        // Clean up the temporary span
+        document.body.removeChild(tempSpan);
+
+        document.dispatchEvent(areaAdjusted);
+    });
+    inputLi.addEventListener("input", debouncedUpdate);
+}
+
+function createAddTagLiToUl()
+{
+    let addTagLi = document.createElement("li");
+    addTagLi.classList.add("webapp-item-tags-li");
+    let addTagInput = document.createElement("input");
+    addTagInput.setAttribute("type", "text");
+    addTagInput.setAttribute("placeholder", "+add tag");
+    addTagInput.classList.add("webapp-item-tags-li-input-add")
+
+    // Create a temporary span to measure the text width
+    let tempSpan = document.createElement("span");
+    tempSpan.style.visibility = "hidden";
+    tempSpan.style.position = "absolute";
+    tempSpan.style.whiteSpace = "nowrap";
+    tempSpan.textContent = addTagInput.placeholder;
+    document.body.appendChild(tempSpan)
+
+    // Set the input width to the span's width
+    addTagInput.style.width = (tempSpan.offsetWidth + 10) + 'px'
+
+    // Clean up the temporary span
+    document.body.removeChild(tempSpan)
+
+    addTagLi.appendChild(addTagInput);
+    document.querySelector(".webapp-item-tags-ul").appendChild(addTagLi)
+
+    addTagInput.addEventListener("input", function () {
+        // Create a temporary span to measure the text width
+        let tempSpan = document.createElement("span");
+        tempSpan.style.visibility = "hidden";
+        tempSpan.style.position = "absolute";
+        tempSpan.style.whiteSpace = "nowrap";
+
+        if (addTagInput.value)
+        {
+            tempSpan.textContent = addTagInput.value;
+        }
+        else
+        {
+            tempSpan.textContent = addTagInput.placeholder;
+        }
+
+        document.body.appendChild(tempSpan);
+
+        // Set the input width to the span's width
+        addTagInput.style.width = (tempSpan.offsetWidth + 10) + 'px';
+
+        // Clean up the temporary span
+        document.body.removeChild(tempSpan);
+
+        document.dispatchEvent(areaAdjusted);
+    });
+    addTagInput.addEventListener("keydown", function(key_event) {
+        if (key_event.key === "Enter") 
+        {
+            let parentLi = addTagLi.parentNode;
+            parentLi.removeChild(addTagLi);
+            addTagLiToUl(addTagInput.value);
+            createAddTagLiToUl();
+            document.dispatchEvent(areaAdjusted);
+        }
+        });
 }
