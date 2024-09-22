@@ -684,6 +684,7 @@ a:hover
 
 #item_delete_display
 {
+    flex: 1;
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;

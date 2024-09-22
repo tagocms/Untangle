@@ -102,11 +102,12 @@ def create():
         item_type = "task"
         list = "Inbox"
         item_status = 0
+        item_priority = 0
         user_id = session.get("user_id")
 
         with db.begin() as conn:
-            conn.execute(text("INSERT INTO items (title, item_type, list, item_status, user_id) VALUES (:title, :item_type, :list, :item_status, :user_id)"), 
-                         {"title": title, "item_type": item_type, "list": list,"item_status": item_status ,"user_id": user_id})
+            conn.execute(text("INSERT INTO items (title, item_type, list, item_status, user_id, item_priority) VALUES (:title, :item_type, :list, :item_status, :user_id, :item_priority)"), 
+                         {"title": title, "item_type": item_type, "list": list,"item_status": item_status ,"user_id": user_id, "item_priority": item_priority})
         
         return redirect("/webapp")
     else:
@@ -122,6 +123,9 @@ def delete():
 
         with db.begin() as conn:
             conn.execute(text("DELETE FROM items WHERE id = :id"), {"id": id})
+
+        with db.begin() as conn:
+            conn.execute(text("DELETE FROM tags WHERE item_id = :id"), {"id": id})
 
         return jsonify({"response": "Update successful", "type": 200})
     else:
@@ -141,7 +145,11 @@ def update():
         tags = data["tags_list"]
         list = data["list_name"]
         item_type = data["type_value"]
+        item_status = data["status_value"]
         user_id = session.get("user_id")
+
+        if item_type == "note":
+            item_status = False
 
         if not id:
             return jsonify({"response": "Invalid data", "type": 400})
@@ -154,9 +162,9 @@ def update():
         with db.begin() as conn:
             conn.execute(
                 text(
-                "UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority, list = :list, item_type = :item_type WHERE id = :id"
+                "UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority, list = :list, item_type = :item_type, item_status = :item_status WHERE id = :id"
                 ), 
-                {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority, "list": list, "item_type": item_type}
+                {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority, "list": list, "item_type": item_type, "item_status": item_status}
                 )
         
         if tags:

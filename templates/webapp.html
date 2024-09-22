@@ -31,7 +31,7 @@
             </div>
         </form>
         <div>
-            <ul style="list-style-type: none; padding: 0%;">
+            <ul style="list-style-type: none; padding: 0%;" id="webapp_items_list_display">
                 {% for item in items %}
                 {% if item.item_status == 0 %}
                 <li>
@@ -42,16 +42,16 @@
                         </div>
                     {% elif item.item_type == "task" %}
                         <div class="shadow p-3  webapp-text rounded webapp-item" onclick="itemListener(event)" id="{{ item.id }}">
-                        {% if item.item_priority == none %}
-                            <input class="form-check-input webapp-task-p0" type="checkbox">
+                        {% if item.item_priority == none or item.item_priority == 0 %}
+                            <input class="form-check-input webapp-task-p0" type="checkbox" oninput="itemListener(event)">
                         {% elif item.item_priority == 1 %}
-                            <input class="form-check-input webapp-task-p1" type="checkbox">
+                            <input class="form-check-input webapp-task-p1" type="checkbox" oninput="itemListener(event)">
                         {% elif item.item_priority == 2 %}
-                            <input class="form-check-input webapp-task-p2" type="checkbox">
+                            <input class="form-check-input webapp-task-p2" type="checkbox" oninput="itemListener(event)">
                         {% elif item.item_priority == 3 %}
-                            <input class="form-check-input webapp-task-p3" type="checkbox">
+                            <input class="form-check-input webapp-task-p3" type="checkbox" oninput="itemListener(event)">
                         {% else %}
-                            <input class="form-check-input webapp-task-p0" type="checkbox">
+                            <input class="form-check-input webapp-task-p0" type="checkbox" oninput="itemListener(event)">
                         {% endif %}
                             <div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         </div>
@@ -98,6 +98,7 @@
     window.addEventListener('load', adjustTextareaHeight);
     document.addEventListener('updateDatabaseCalled', fetchData);
     document.addEventListener('fetchDataCalled', updateItemTitle);
+    document.addEventListener('fetchDataCalled', updateType);
     document.addEventListener('fetchDataCalled', updateCheckBox);
 </script>
 {% endblock %}

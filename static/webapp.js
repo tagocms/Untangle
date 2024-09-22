@@ -6,20 +6,24 @@ let updateInProgress = false;
 
 async function itemListener(event) 
 {
+    event.stopPropagation();
+    var trigger = event.target;
+    console.log("Trigger for Item Listener: ", trigger);
+
+    if (trigger.children.length == 0) 
+    {
+        trigger = trigger.parentNode;
+    }
+
+    id = parseInt(trigger.id);
+
     resetItems();
-    if (updateInProgress && document.querySelector(".webapp-textarea-body")) {
+    if (updateInProgress && document.querySelector(".webapp-textarea-body")) 
+    {
         await debouncedUpdateDatabase();
     }
 
     await fetchData();
-
-    var trigger = event.srcElement;
-    if (trigger.children.length == 0)
-    {
-        trigger = trigger.parentElement;
-    }
-
-    id = parseInt(trigger.id);
 
     var item = {};
     var tags = [];
@@ -100,22 +104,20 @@ async function itemListener(event)
     //Adjusting checkbox
     if (item.item_type == "task")
     {
-        let input = document.createElement("input");
-        input.setAttribute("type", "checkbox");
-        input.setAttribute("id", "check-item");
-        document.querySelector("#item_check_display").style.cssText = "";
-        document.querySelector("#item_check_display").classList.add("check-display-border");
-        if (!document.querySelector("#check-item"))
-        {
-            document.querySelector("#item_check_display").appendChild(input);
-        }
-        console.log("ID:", document.querySelector("#check-item"));
-        updateCheckBox();
+        createItemCheck();
+        document.querySelector("#check-item").checked = false;
     }
     if (item.item_type == "note" && document.querySelector("#check-item"))
     {
         document.querySelector("#item_check_display").removeChild(document.querySelector("#check-item"));
         document.querySelector("#item_check_display").style.border = "none";
+    }
+    let listItem = document.getElementById(String(item.id));
+    if (listItem && listItem.children[0].checked)
+    {
+        document.querySelector("#check-item").checked = true;
+        debouncedUpdate();
+        itemChangeCompletion();
     }
 
     // Adjusting the deadline date
@@ -149,51 +151,7 @@ async function itemListener(event)
     //Adjusting the item priority
     if (item.item_type == "task")
     {
-        if (!document.querySelector(".priority-display"))
-        {
-            let prioritySelect = document.createElement("select");
-            prioritySelect.classList.add("webapp-priority");
-            prioritySelect.setAttribute("name", "Priority");
-            document.querySelector("#item_priority_display").classList.add("priority-display");
-            document.querySelector("#item_priority_display").innerHTML = "Priority: ";
-            document.querySelector("#item_priority_display").appendChild(prioritySelect);
-            prioritySelect.addEventListener("input", debouncedUpdate);
-            document.querySelector(".webapp-priority").addEventListener("change", priorityColor);
-            for (let i = 0; i < 4; i++)
-                {
-                    let optionPrioritySelect = document.createElement("option");
-                    if (i == 0)
-                    {
-                        optionPrioritySelect.value = null;
-                        optionPrioritySelect.innerHTML = "None";
-                        optionPrioritySelect.classList.add("webapp-priority-option0");
-                    }
-                    else
-                    {
-                        optionPrioritySelect.value = i;
-                        optionPrioritySelect.classList.add("webapp-priority-option" + String(i));
-                        if (i == 1)
-                        {
-                            optionPrioritySelect.innerHTML = "Low";
-                        }
-                        else if (i == 2)
-                        {
-                            optionPrioritySelect.innerHTML = "Medium";
-                        }
-                        else if (i == 3)
-                        {
-                            optionPrioritySelect.innerHTML = "High";
-                        }
-                        else
-                        {
-                            optionPrioritySelect.innerHTML = "None";
-                        }
-                    }
-                    document.querySelector(".webapp-priority").appendChild(optionPrioritySelect);
-                }
-        }
-        document.querySelector(".webapp-priority").value = item.item_priority;
-        priorityColor();
+        createItemPriority();
     }
     else if (item.item_type == "note" && document.querySelector(".priority-display"))
     {
@@ -325,7 +283,7 @@ async function updateDatabase()
     }
     else
     {
-        priorityValue = null;
+        priorityValue = 0;
     }
     let tagsUl = document.querySelector(".webapp-item-tags-ul");
     let tagsLi = tagsUl.querySelectorAll("li");
@@ -340,6 +298,15 @@ async function updateDatabase()
     }
     let listName = document.querySelector(".webapp-list-select").value;
     let typeValue = document.querySelector(".webapp-type-select").value;
+    let statusValue;
+    if (document.querySelector("#check-item"))
+    {
+        statusValue = document.querySelector("#check-item").checked;
+    }
+    else
+    {
+        statusValue = false;
+    }
 
     let payload = { item_id: itemId, 
         body_value: bodyValue, 
@@ -348,7 +315,8 @@ async function updateDatabase()
         priority_value: priorityValue,
         tags_list: tagsList,
         list_name: listName,
-        type_value: typeValue };
+        type_value: typeValue,
+        status_value: statusValue };
     console.log("Payload:", payload);
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -419,7 +387,9 @@ function updateItemTitle()
             item.children[0].className = "";
             if (itemsData[i].item_type == "task")
             {
-                if (itemsData[i].item_priority == "null")
+                let checkInput = document.createElement("input");
+                checkInput.setAttribute("type", "checkbox");
+                if (itemsData[i].item_priority == "null" || itemsData[i].item_priority == 0)
                 {
                     item.children[0].classList.add("form-check-input", "webapp-task-p0");
                 }
@@ -427,6 +397,19 @@ function updateItemTitle()
                 {
                     item.children[0].classList.add("form-check-input", "webapp-task-p" + String(itemsData[i].item_priority));
                 }
+
+                if (item.children[0].tagName != "INPUT")
+                {
+                    item.replaceChild(checkInput, item.children[0]);
+                }
+            }
+            else if (itemsData[i].item_type == "note" && item.children[0].tagName != "IMG")
+            {
+                console.log("Tag name:", item.children[0].tagName);
+                console.log("Update list note image.");
+                let noteImage = document.createElement("img");
+                noteImage.setAttribute("src", "/static/edit.png");
+                item.replaceChild(noteImage, item.children[0]);
             }
         }
     }
@@ -485,6 +468,12 @@ function updateCheckBox()
             else
             {
                 document.querySelector("#check-item").classList.add("webapp-task-p0");
+            }
+
+            let listItem = document.getElementById(String(itemId));
+            if (listItem && listItem.children[0].checked)
+            {
+                document.querySelector("#check-item").checked = true;
             }
         }
     }
@@ -652,26 +641,231 @@ async function deleteItem()
     document.dispatchEvent(updateDatabaseCalled);
 }
 
-
-function deleteFromScreen()
+function deleteFromList()
 {
     for (let i = 0; i < itemsData.length; i++)
     {
-        let itemDisplayed = document.querySelector("#edit_item_column" + String(itemsData[i].id));
+        let itemDisplayed = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
         let item = document.getElementById(String(itemsData[i].id));
-        if (item)
+        if (item && itemDisplayed == itemsData[i].id)
         {
             let parentItem = item.parentNode;
             parentItem.removeChild(item); 
         }
     }
+}
+
+
+function deleteFromScreen()
+{
+    deleteFromList();
+
     document.querySelector("#item_check_display").innerHTML = "";
+    document.querySelector("#item_check_display").style.cssText = "";
+    document.querySelector("#item_check_display").classList.remove("check-display-border");
+
     document.querySelector("#item_deadline_display").innerHTML = "";
+    document.querySelector("#item_deadline_display").style.cssText = "";
+    document.querySelector("#item_deadline_display").classList.remove("deadline-display");
+
     document.querySelector("#item_priority_display").innerHTML = "";
+    document.querySelector("#item_priority_display").style.cssText = "";
+    document.querySelector("#item_priority_display").classList.remove("priority-display");
+    
     document.querySelector("#item_title_display").innerHTML = "";
+    document.querySelector("#item_title_display").style.cssText = "";
+
     document.querySelector("#item_tags_display").innerHTML = "";
+    document.querySelector("#item_tags_display").style.cssText = "";
+    document.querySelector("#item_tags_display").classList.remove("webapp-item-tags");
+
     document.querySelector("#item_body_display").innerHTML = "";
+    document.querySelector("#item_body_display").style.cssText = "";
+
     document.querySelector("#item_list_display").innerHTML = "";
+    document.querySelector("#item_list_display").style.cssText = "";
+    document.querySelector("#item_list_display").classList.remove("webapp-list-display");
+
     document.querySelector("#item_type_display").innerHTML = "";
+    document.querySelector("#item_type_display").style.cssText = "";
+    document.querySelector("#item_type_display").classList.remove("webapp-type-display");
+
     document.querySelector("#item_delete_display").innerHTML = "";
+    document.querySelector("#item_delete_display").style.cssText = "";
+    document.querySelector("#item_delete_display").classList.remove("webapp-delete");
+}
+
+
+function updateType()
+{
+    let itemDisplayed = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
+    let item;
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        if (itemDisplayed == itemsData[i].id)
+        {
+            item = itemsData[i];
+        }
+    }
+    updateItemTitle();
+    if (item)
+    {
+        if (item.item_type == "note")
+        {
+            document.querySelector("#item_check_display").innerHTML = "";
+            document.querySelector("#item_check_display").style.cssText = "";
+            document.querySelector("#item_check_display").classList.remove("check-display-border");
+
+            document.querySelector("#item_priority_display").innerHTML = "";
+            document.querySelector("#item_priority_display").style.cssText = "";
+            document.querySelector("#item_priority_display").classList.remove("priority-display");
+        }
+        else if (item.item_type == "task")
+        {
+            createItemCheck();
+            createItemPriority();
+        }
+    }
+}
+
+function createItemPriority()
+{
+    let itemDisplayed = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
+    let item;
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        if (itemDisplayed == itemsData[i].id)
+        {
+            item = itemsData[i];
+        }
+    }
+    if (!document.querySelector(".priority-display"))
+    {
+        let prioritySelect = document.createElement("select");
+        prioritySelect.classList.add("webapp-priority");
+        prioritySelect.setAttribute("name", "Priority");
+        document.querySelector("#item_priority_display").classList.add("priority-display");
+        document.querySelector("#item_priority_display").innerHTML = "Priority: ";
+        document.querySelector("#item_priority_display").appendChild(prioritySelect);
+        prioritySelect.addEventListener("input", debouncedUpdate);
+        prioritySelect.addEventListener("change", priorityColor);
+        for (let i = 0; i < 4; i++)
+            {
+                let optionPrioritySelect = document.createElement("option");
+                if (i == 0)
+                {
+                    optionPrioritySelect.value = 0;
+                    optionPrioritySelect.innerHTML = "None";
+                    optionPrioritySelect.classList.add("webapp-priority-option0");
+                }
+                else
+                {
+                    optionPrioritySelect.value = i;
+                    optionPrioritySelect.classList.add("webapp-priority-option" + String(i));
+                    if (i == 1)
+                    {
+                        optionPrioritySelect.innerHTML = "Low";
+                    }
+                    else if (i == 2)
+                    {
+                        optionPrioritySelect.innerHTML = "Medium";
+                    }
+                    else if (i == 3)
+                    {
+                        optionPrioritySelect.innerHTML = "High";
+                    }
+                    else
+                    {
+                        optionPrioritySelect.innerHTML = "None";
+                    }
+                }
+                document.querySelector(".webapp-priority").appendChild(optionPrioritySelect);
+            }
+    }
+    document.querySelector(".webapp-priority").value = item.item_priority;
+    priorityColor();
+}
+
+function createItemCheck()
+{
+    let input = document.createElement("input");
+    input.setAttribute("type", "checkbox");
+    input.setAttribute("id", "check-item");
+    document.querySelector("#item_check_display").style.cssText = "";
+    document.querySelector("#item_check_display").classList.add("check-display-border");
+    
+    let itemDisplayed = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
+    let item;
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        if (itemDisplayed == itemsData[i].id)
+        {
+            item = itemsData[i];
+        }
+    }
+
+    if (!document.querySelector("#check-item"))
+    {
+        document.querySelector("#item_check_display").appendChild(input);
+        input.addEventListener("change", debouncedUpdate);
+        input.addEventListener("change", itemChangeCompletion);
+    }
+
+    updateCheckBox();
+}
+
+async function itemChangeCompletion()
+{
+    await fetchData();
+    resetScreen();
+}
+
+
+function resetScreen()
+{
+    let ul = document.querySelector("#webapp_items_list_display");
+    ul.innerHTML = "";
+
+    for (let i = 0; i < itemsData.length; i++)
+    {
+        let item = itemsData[i];
+        
+        if (!item.item_status)
+        {
+            let li = document.createElement("li");
+            let divItem = document.createElement("div");
+            let divText = document.createElement("div");
+
+            divItem.className = "shadow p-3 webapp-text rounded webapp-item";
+            divItem.id = item.id;
+            divItem.addEventListener('click', itemListener);
+
+            divText.className = "webapp-item-title-text";
+            divText.innerHTML = item.title;
+            divText.addEventListener('click', itemListener);
+
+            if (item.item_type == "note")
+            {
+                let imgNote = document.createElement("img");
+                imgNote.setAttribute("src", "/static/edit.png");
+                divItem.appendChild(imgNote);
+            }
+            else if(item.item_type == "task")
+            {
+                let inputItem = document.createElement("input");
+                inputItem.setAttribute("type", "checkbox");
+                if (item.priority == "null" || item.priority > 3)
+                {
+                    item.priority = 0;
+                }
+                inputItem.classList.add("form-check-input", "webapp-task-p" + item.item_priority);
+                inputItem.addEventListener("input", itemListener);
+                divItem.appendChild(inputItem);
+            }
+            
+            divItem.appendChild(divText);
+            li.appendChild(divItem);
+            ul.appendChild(li);
+        }
+    }
 }
