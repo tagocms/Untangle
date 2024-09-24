@@ -816,6 +816,7 @@ function createItemCheck()
 
 async function itemChangeCompletion()
 {
+    await updateDatabase();
     await fetchData();
     resetScreen();
 }

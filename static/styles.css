@@ -141,6 +141,12 @@
     
 }
 
+.untangle-form:focus
+{
+    border-color: #ff0e62;
+    box-shadow: 0 0 0 .25rem rgba(255, 14, 98, 0.5);
+}
+
 .form-label .untangle-form .floating-label
 {
     color: #525252;
