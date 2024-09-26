@@ -9,19 +9,39 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="column-3 shadow bg-body content" style="flex: 10%; height: 100vh; padding: 2%;">
         <div class="webapp-text">
-            <img src="/static/check.png" alt="User" class="img-fluid img-list">My Space
+            <img src="/static/user.png" alt="Notes" class="img-fluid img-list">
+            <button type="button" class="btn webapp-text" data-bs-toggle="modal" data-bs-target="#mySpace" id="modalButton">
+                My Space
+            </button>
+            <div class="modal fade" id="mySpace" tabindex="-1" aria-labelledby="mySpaceLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title webapp-text" id="mySpaceLabel">My Space</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" style="text-align: center;">
+                        <form action="/webapp">
+                            <button type="submit" class="btn webapp-close-button" style="font-size: 100%; margin: 5%;">Webapp</button>
+                        </form>
+                        <form action="/logout">
+                            <button type="submit" class="btn webapp-close-button" style="font-size: 100%; margin: 5%;">Log Out</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn webapp-close-button" data-bs-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+            </div>
         </div>
         <div class="webapp-text small">
             <ul style="list-style-type: none; padding: 0%;">
-                <li><img src="/static/edit.png" alt="Notes" class="img-fluid img-list">Note Manager</li>
-                <li><img src="/static/check.png" alt="Tasks" class="img-fluid img-list">Task Manager</li>
-                <li><img src="/static/check.png" alt="Search" class="img-fluid img-list">Search</li>
+                <li><img src="/static/edit-grey.png" alt="Notes" class="img-fluid img-list">Note Manager</li>
+                <li><img src="/static/check-grey.png" alt="Tasks" class="img-fluid img-list">Task Manager</li>
+                <li><img src="/static/search.png" alt="Search" class="img-fluid img-list">Search</li>
             </ul>
         </div>
-        <form action="/logout" >
-            <button type="submit">LOGOUT</button>
-        </form>
-
     </div>
     <div class="column-3 content" style="flex: 50%; height: 100vh; padding: 2%; overflow: auto;">
         <form action="/create" method="post">

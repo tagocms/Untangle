@@ -27,12 +27,37 @@
     text-decoration: none;
 }
 
+.webapp-close-button
+{
+    background-color: #6f6f6f; 
+    color:white; 
+    text-decoration: none;
+}
+
+.webapp-close-button:hover
+{
+    background-color: #6f6f6f;
+    color:white; 
+}
+
 .untangle-btn:active
 {
     color: #ff0e62;
     background-color: white;
     border-color: #ff0e62;
     text-decoration: none;
+}
+
+.webapp-close-button:active
+{
+    background-color: #6f6f6f;
+    color: white; 
+}
+
+#modalButton
+{
+    outline: none;
+    border: none;
 }
 
 .untangle-btn[type=submit]:active

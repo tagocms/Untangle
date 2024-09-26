@@ -112,13 +112,6 @@ async function itemListener(event)
         document.querySelector("#item_check_display").removeChild(document.querySelector("#check-item"));
         document.querySelector("#item_check_display").style.border = "none";
     }
-    let listItem = document.getElementById(String(item.id));
-    if (listItem && listItem.children[0].checked)
-    {
-        document.querySelector("#check-item").checked = true;
-        debouncedUpdate();
-        itemChangeCompletion();
-    }
 
     // Adjusting the deadline date
     if (!document.querySelector(".deadline-display"))
@@ -236,6 +229,14 @@ async function itemListener(event)
         deleteImage.style.height = deleteDisplay.scrollHeight + "px";
         deleteDisplay.appendChild(deleteImage);
         deleteImage.addEventListener("click", deleteItem);
+    }
+
+    let listItem = document.getElementById(String(item.id));
+    if (listItem && listItem.children[0].checked)
+    {
+        document.querySelector("#check-item").checked = true;
+        debouncedUpdate();
+        itemChangeCompletion();
     }
 
     adjustTextareaHeight();
