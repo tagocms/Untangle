@@ -2,6 +2,7 @@ const updateDatabaseCalled = new Event('updateDatabaseCalled');
 const areaAdjusted = new Event('areaAdjusted');
 const fetchDataCalled = new Event('fetchDataCalled');
 const debouncedUpdateDatabase = debounce(updateDatabase, 250);
+const debouncedSearch = debounce(searchDatabase, 250);
 let updateInProgress = false;
 
 async function itemListener(event) 
@@ -379,10 +380,11 @@ async function debouncedUpdate()
 
 function updateItemTitle()
 {
+    let metaFilter = document.querySelector('meta[name="filter-applied"]');
     for (let i = 0; i < itemsData.length; i++)
     {
         let item = document.getElementById(String(itemsData[i].id));
-        if (item)
+        if (item && itemsData[i].list == metaFilter.getAttribute('content'))
         {
             item.children[1].innerHTML = itemsData[i].title;
             item.children[0].className = "";
@@ -412,6 +414,10 @@ function updateItemTitle()
                 noteImage.setAttribute("src", "/static/edit.png");
                 item.replaceChild(noteImage, item.children[0]);
             }
+        }
+        else if (item && itemsData[i].list != metaFilter.getAttribute('content'))
+        {
+            item.parentNode.removeChild(item);
         }
     }
 }
@@ -823,7 +829,7 @@ async function itemChangeCompletion()
 }
 
 
-function resetScreen()
+function resetScreen(itemsData = itemsData)
 {
     let ul = document.querySelector("#webapp_items_list_display");
     ul.innerHTML = "";
@@ -870,4 +876,98 @@ function resetScreen()
             ul.appendChild(li);
         }
     }
+}
+
+
+function openSearch(event)
+{
+    var column = document.querySelector("#list_item_column");
+    var divSearch = document.createElement("div");
+    var inputSearch = document.createElement("input");
+
+    divSearch.className = "input-group flex-nowrap shadow-sm";
+    inputSearch.className = "form-control p-3 bg-body-tertiary rounded webapp-text webapp-create";
+    inputSearch.name = "search_item";
+    inputSearch.setAttribute("type", "text");
+    inputSearch.setAttribute("id", "search_bar");
+    inputSearch.setAttribute("placeholder", "Search");
+    inputSearch.setAttribute("aria-label", "Item");
+    inputSearch.setAttribute("aria-describedby", "addon-wrapping");
+
+    inputSearch.addEventListener("input", resetSearchedItems);
+
+    divSearch.appendChild(inputSearch);
+
+    column.replaceChild(divSearch, column.children[0]);
+}
+
+
+async function searchDatabase()
+{
+    let input = document.querySelector("#search_bar").value;
+    let filterType = "search";
+    let payload = { title: input, 
+        filter_type: filterType,  
+        item_list: null
+    };
+    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    console.log("Payload for search function: ", payload);
+
+    let itemsData = await fetch("/filter", 
+        {
+            method: "POST", 
+            headers: 
+            {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify(payload)
+        }
+    ).then(response => response.json());
+
+    return itemsData
+}
+
+
+async function resetSearchedItems()
+{
+    let filteredItemsData = await debouncedSearch();
+    resetScreen(filteredItemsData);
+}
+
+
+async function filterDatabase(event)
+{
+    let metaFilter = document.querySelector('meta[name="filter-applied"]');
+    let itemList = event.target.name;
+    metaFilter.setAttribute("content", itemList);
+    let filterType = "list";
+    let payload = { title: null, 
+        filter_type: filterType,  
+        item_list: itemList
+    };
+    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    console.log("Payload for filter function: ", payload);
+
+    let itemsData = await fetch("/filter", 
+        {
+            method: "POST", 
+            headers: 
+            {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify(payload)
+        }
+    ).then(response => response.json());
+
+    return itemsData; 
+}
+
+async function resetFilteredItems(event)
+{
+    let filteredItemsData = await filterDatabase(event);
+    resetScreen(filteredItemsData);
 }

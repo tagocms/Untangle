@@ -6,6 +6,7 @@
 
 {% block body_layout %}
 <div class="row" style="margin: 0;">
+    <meta name="filter-applied" content="">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <div class="column-3 shadow bg-body content" style="flex: 10%; height: 100vh; padding: 2%;">
         <div class="webapp-text">
@@ -37,13 +38,54 @@
         </div>
         <div class="webapp-text small">
             <ul style="list-style-type: none; padding: 0%;">
-                <li><img src="/static/edit-grey.png" alt="Notes" class="img-fluid img-list">Note Manager</li>
-                <li><img src="/static/check-grey.png" alt="Tasks" class="img-fluid img-list">Task Manager</li>
-                <li><img src="/static/search.png" alt="Search" class="img-fluid img-list">Search</li>
+                <li>
+                    <img src="/static/edit-grey.png" alt="Notes" class="img-fluid img-list">
+                    <button type="button" class="btn webapp-filter-button-main">
+                        Note Manager
+                    </button>
+                </li>
+                <li>
+                    <img src="/static/check-grey.png" alt="Tasks" class="img-fluid img-list">
+                    <button type="button" class="btn webapp-filter-button-main">
+                        Task Manager
+                    </button>
+                </li>
+                <li>
+                    <img src="/static/search.png" alt="Search" class="img-fluid img-list">
+                    <button type="button" class="btn webapp-filter-button-main" onclick="openSearch(event)">
+                        Search
+                    </button>
+                </li>
             </ul>
+            <div id="lists_div">
+                <div class="webapp-filter-display">
+                    <div class="webapp-filter">Lists</div>
+                    <button type="button" class="btn webapp-add-button">+</button>
+                </div>
+                <ul style="list-style-type: none; padding: 0%;" >
+                    {% for list in lists %}
+                        <li>
+                            <div class="webapp-text small webapp-filter-name">
+                                {% if list.list_name == "Inbox" %}
+                                <div class="webapp-icon">📥</div>
+                                {% elif list.list_icon == None %}
+                                    <div class="webapp-icon">📋</div>
+                                {% else %}
+                                    <div class="webapp-icon">{{ list.list_icon }}</div>
+                                {% endif %}
+                                <div>
+                                    <button type="button" class="btn webapp-filter-button" onclick="resetFilteredItems(event)" name="{{ list.list_name }}" id="list_{{ list.id }}">
+                                        {{ list.list_name }}
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
-    <div class="column-3 content" style="flex: 50%; height: 100vh; padding: 2%; overflow: auto;">
+    <div class="column-3 content" style="flex: 50%; height: 100vh; padding: 2%; overflow: auto;" id="list_item_column">
         <form action="/create" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="input-group flex-nowrap shadow-sm">

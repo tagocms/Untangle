@@ -203,7 +203,7 @@ def read():
         user_id = session.get("user_id")
 
         with db.begin() as conn:
-            result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id"), {"user_id": user_id})
+            result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id})
             rows = result.mappings().all()
         items = [dict(row) for row in rows]
 
@@ -228,6 +228,32 @@ def read():
             return jsonify(lists)
         else:
             return jsonify({"response": "Item not found", "type": 400})
+    else:
+        return jsonify({"response": "No update", "type": 200})
+
+
+@app.route("/filter", methods=["POST", "GET"])
+@login_required
+def filter():
+    if request.method == "POST":
+        data = request.get_json()
+        title = data["title"]
+        filter_type = data["filter_type"]
+        item_list = data["item_list"]
+        user_id = session.get("user_id")
+
+        if filter_type == "search":
+            with db.begin() as conn:
+                result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND title LIKE :title ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "title": "%" + title + "%"})
+                rows = result.mappings().all()
+            items = [dict(row) for row in rows]
+        elif filter_type == "list":
+            with db.begin() as conn:
+                result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND list = :item_list ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "item_list": item_list})
+                rows = result.mappings().all()
+            items = [dict(row) for row in rows]
+
+        return jsonify(items)
     else:
         return jsonify({"response": "No update", "type": 200})
 
