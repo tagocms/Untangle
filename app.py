@@ -69,7 +69,7 @@ def index():
 @login_required
 def webapp():
     user_id = session.get("user_id")
-    emojis = ["😀", "😂", "😍", "😎", "😭"]
+    emojis = ["📋", "💻", "💼", "💽", "💾", "📁", "📅", "📌", "📓", "📢", "🔋", "📰", "🚀", "🚗", "⛔", "🚴", "🛐", "🎁", "🎀", "🎓", "💰", "🔎", "💥", "💡", "😀", "😂", "😍", "😎", "😭"]
 
     with db.begin() as conn:
         result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id})
@@ -88,8 +88,16 @@ def webapp():
             result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id"), {"user_id": user_id})
             rows = result.mappings().all()
     lists = [dict(row) for row in rows]
+
+    inbox_id = 0
+
+    if lists:
+        for list in lists:
+            if list["list_name"] == "Inbox":
+                inbox_id = list["id"]
+
     
-    return render_template("webapp.html", items=items, tags=tags, lists=lists, emojis=emojis)
+    return render_template("webapp.html", items=items, tags=tags, lists=lists, emojis=emojis, inbox_id=inbox_id)
 
 @app.route("/create", methods=["POST", "GET"])
 @login_required
@@ -101,14 +109,37 @@ def create():
             return redirect("/webapp")
         
         item_type = "task"
-        list = "Inbox"
         item_status = 0
         item_priority = 0
         user_id = session.get("user_id")
+        list_name = "Inbox"
+        list_id = 0
 
         with db.begin() as conn:
-            conn.execute(text("INSERT INTO items (title, item_type, list, item_status, user_id, item_priority) VALUES (:title, :item_type, :list, :item_status, :user_id, :item_priority)"), 
-                         {"title": title, "item_type": item_type, "list": list,"item_status": item_status ,"user_id": user_id, "item_priority": item_priority})
+            result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id AND list_name = :list_name"), {"user_id": user_id, "list_name": list_name})
+        
+        rows = result.mappings().all()
+        
+        if rows:
+            for row in rows:
+                if row["list_name"] == list_name and row["user_id"] == user_id:
+                    list_id = row["id"]
+        elif not rows:
+            with db.begin() as conn:
+                conn.execute(text("INSERT INTO lists (list_icon, list_name, user_id) VALUES (:list_icon, :list_name, :user_id)"), 
+                             {"list_icon": "📥", "list_name": "Inbox", "user_id": user_id})
+            with db.begin() as conn:
+                result_new = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id AND list_name = :list_name"), {"user_id": user_id, "list_name": list_name})
+            
+            rows_new = result_new.mappings().all()
+
+            for row_new in rows_new:
+                if row_new["list_name"] == list_name and row_new["user_id"] == user_id:
+                    list_id = row_new["id"]
+
+        with db.begin() as conn:
+            conn.execute(text("INSERT INTO items (title, item_type, list_id, item_status, user_id, item_priority) VALUES (:title, :item_type, :list_id, :item_status, :user_id, :item_priority)"), 
+                         {"title": title, "item_type": item_type, "list_id": list_id,"item_status": item_status ,"user_id": user_id, "item_priority": item_priority})
         
         return redirect("/webapp")
     else:
@@ -132,6 +163,7 @@ def delete():
     else:
         return jsonify({"response": "No update", "type": 200})
 
+
 @app.route("/update", methods=["POST", "GET"])
 @login_required
 def update():
@@ -144,7 +176,7 @@ def update():
         deadline = data["deadline_value"]
         priority = data["priority_value"]
         tags = data["tags_list"]
-        list = data["list_name"]
+        list_id = data["list_id"]
         item_type = data["type_value"]
         item_status = data["status_value"]
         user_id = session.get("user_id")
@@ -163,9 +195,9 @@ def update():
         with db.begin() as conn:
             conn.execute(
                 text(
-                "UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority, list = :list, item_type = :item_type, item_status = :item_status WHERE id = :id"
+                "UPDATE items SET body = :body, title = :title, deadline = :deadline, item_priority = :priority, list_id = :list_id, item_type = :item_type, item_status = :item_status WHERE id = :id"
                 ), 
-                {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority, "list": list, "item_type": item_type, "item_status": item_status}
+                {"id": id, "body": body, "title": title, "deadline": deadline, "priority": priority, "list_id": list_id, "item_type": item_type, "item_status": item_status}
                 )
         
         if tags:
@@ -240,7 +272,7 @@ def filter():
         data = request.get_json()
         title = data["title"]
         filter_type = data["filter_type"]
-        item_list = data["item_list"]
+        list_id = data["list_id"]
         item_type = data["item_type"]
         item_status = data["item_status"]
         user_id = session.get("user_id")
@@ -252,7 +284,7 @@ def filter():
             items = [dict(row) for row in rows]
         elif filter_type == "list":
             with db.begin() as conn:
-                result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND list = :item_list ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "item_list": item_list})
+                result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND list_id = :list_id ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "list_id": list_id})
                 rows = result.mappings().all()
             items = [dict(row) for row in rows]
         elif filter_type == "complete":
@@ -277,8 +309,8 @@ def filter():
 @login_required
 def create_list():
     if request.method == "POST":
-        list_name = request.form.get("create_list")
-        list_icon = request.form.get("list_emoji")
+        list_name = request.form.get("create_list").strip()
+        list_icon = request.form.get("list_emoji").strip()
 
         if not list_name or len(list_name) > 30:
             return redirect("/webapp")
@@ -289,6 +321,16 @@ def create_list():
         user_id = session.get("user_id")
 
         with db.begin() as conn:
+            result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id AND list_name = :list_name"), {"user_id": user_id, "list_name": list_name})
+            rows = result.mappings().all()
+
+        items = [dict(row) for row in rows]
+        if items:
+            for item in items:
+                if item["list_name"] == list_name:
+                    return redirect("/webapp")
+
+        with db.begin() as conn:
             conn.execute(text("INSERT INTO lists (list_icon, list_name, user_id) VALUES (:list_icon, :list_name, :user_id)"), 
                          {"list_icon": list_icon, "list_name": list_name, "user_id": user_id})
         
@@ -296,6 +338,84 @@ def create_list():
     else:
         return redirect("/webapp")
     
+
+@app.route("/update-list", methods=["POST", "GET"])
+@login_required
+def update_list():
+    if request.method == "POST":
+        try:
+            id = int(request.form.get("edit_list_id").strip())
+        except:
+            return redirect("/webapp")
+    
+        list_name = request.form.get("edit_list").strip()
+        list_icon = request.form.get("edit_list_emoji").strip()
+
+        if not list_name or len(list_name) > 30:
+            return redirect("/webapp")
+        elif list_name == "Inbox":
+            return redirect("/webapp")
+
+        if not list_icon:
+            list_icon = "📋"
+        
+        user_id = session.get("user_id")
+
+        with db.begin() as conn:
+            result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id AND list_name = :list_name"), {"user_id": user_id, "list_name": list_name})
+            rows = result.mappings().all()
+
+        items = [dict(row) for row in rows]
+        if items:
+            for item in items:
+                if item["list_name"] == list_name and item["id"] != id:
+                    print(item)
+                    return redirect("/webapp")
+
+        with db.begin() as conn:
+            conn.execute(text("UPDATE lists SET list_icon = :list_icon, list_name = :list_name WHERE user_id = :user_id AND id = :id"), 
+                         {"list_icon": list_icon, "list_name": list_name, "user_id": user_id, "id": id})
+        
+        return redirect("/webapp")
+    else:
+        return redirect("/webapp")
+
+
+@app.route("/delete-list", methods=["POST", "GET"])
+@login_required
+def delete_list():
+    if request.method == "POST":
+        print("Delete List called")
+        try:
+            id = int(request.form.get("delete_list_id").strip())
+        except:
+            return redirect("/webapp")
+        
+        user_id = session.get("user_id")
+
+        with db.begin() as conn:
+            result = conn.execute(text("SELECT * FROM lists WHERE user_id = :user_id"), {"user_id": user_id})
+            rows = result.mappings().all()
+
+        lists = [dict(row) for row in rows]
+        inbox_id = 0
+        if lists:
+            for list in lists:
+                if list["list_name"] == "Inbox" and list["id"] == id:
+                    return redirect("/webapp")
+                elif list["list_name"] == "Inbox" and list["id"] != id:
+                    inbox_id = list["id"]
+
+        with db.begin() as conn:
+            conn.execute(text("DELETE FROM lists WHERE user_id = :user_id AND id = :id"), {"user_id": user_id, "id": id})
+        
+        with db.begin() as conn:
+            conn.execute(text("UPDATE items SET list_id = :inbox_id WHERE list_id = :id AND user_id = :user_id"), {"inbox_id": inbox_id, "id": id, "user_id": user_id})
+        
+        return redirect("/webapp")
+    else:
+        return redirect("/webapp")
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -338,7 +458,7 @@ def signup():
             if not rows:
                 conn.execute(text("INSERT INTO users (email, hash) VALUES (:email, :hash_p)"), {"email": email, "hash_p": hash_p})
                 session["user_id"] = conn.execute(text("SELECT id FROM users WHERE email = :email"), {"email": email}).all()[0].id
-                conn.execute(text("INSERT INTO lists (list_name, user_id) VALUES (:list_name, :user_id)"), {"list_name": "Inbox", "user_id": session["user_id"]})
+                conn.execute(text("INSERT INTO lists (list_icon, list_name, user_id) VALUES (:list_icon, :list_name, :user_id)"), {"list_icon": "📥", "list_name": "Inbox", "user_id": session["user_id"]})
                 print(session["user_id"])
             else:
                 return render_template("signup.html", error="User already exists.")

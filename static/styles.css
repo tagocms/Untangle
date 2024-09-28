@@ -27,6 +27,41 @@
     text-decoration: none;
 }
 
+.webapp-submit-button
+{
+    background-color: #ff0e62; 
+    color:white; 
+    text-decoration: none;
+}
+
+.webapp-submit-button:hover
+{
+    background-color: #ff0e62; 
+    color:white; 
+}
+
+.webapp-submit-button:active
+{
+    background-color: #ff0e62; 
+    color:white; 
+    outline: none;
+}
+
+.delete
+{
+    background-color: red; 
+}
+
+.delete:hover
+{
+    background-color: red; 
+}
+
+.delete:active
+{
+    background-color: red; 
+}
+
 .webapp-close-button
 {
     background-color: #6f6f6f; 
@@ -259,7 +294,10 @@ a:hover
 
 .webapp-icon
 {
-    width: 10%;
+    flex-shrink: 0;
+    width: auto;
+    align-items: start;
+    justify-content: start;
 }
 
 .webapp-filter-button-main
@@ -288,6 +326,11 @@ a:hover
     margin-left: 5%;
     border: none;
     outline: none;
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    text-align: left;
 }
 
 .webapp-filter-button:active
@@ -303,12 +346,22 @@ a:hover
     font-size: 100%;
 }
 
+.webapp-filter-button-wrapper 
+{
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    align-items: start;
+}
+
 .webapp-filter-name
 {
     font-family: Lato;
     color: rgba(111, 111, 111, 0.5);
     font-size: 120%;
     display: flex;
+    overflow: hidden;
+    gap: 5px;
 }
 
 .webapp-filter-display
@@ -331,6 +384,7 @@ a:hover
     padding: 1px 8px;
     outline: none;
     background-color: white;
+    flex-shrink: 0;
 }
 
 .webapp-add-button:active
@@ -357,6 +411,17 @@ a:hover
     font-size: 100%;
 }
 
+.webapp-create-list
+{
+    border: none;
+}
+
+.webapp-create-list:focus
+{
+    border: none;
+    box-shadow: none;
+}
+
 .webapp-create:focus
 {
     border-color: #ff0e62;
@@ -366,6 +431,12 @@ a:hover
 .webapp-item:hover
 {
     background-color: rgba(100, 100, 100, 0.2);
+}
+
+.btn-close:focus
+{
+    border-color: #ff0e62;
+    box-shadow: 0 0 0 .25rem rgba(255, 14, 98, 0.5);
 }
 
 
@@ -577,6 +648,26 @@ a:hover
     white-space: nowrap;
     padding-right: 0%;
     padding-left: 5%;
+}
+
+.webapp-list-select-emoji
+{
+    border: none;
+    border-radius: 7px;
+    color: #6f6f6f;
+}
+
+.webapp-list-select-emoji:hover
+{
+    background-color: rgba(255, 14, 98, 0.1);
+    border: none;
+    outline: none;
+}
+
+.webapp-list-select-emoji:focus-visible
+{
+    border: none;
+    outline: none;
 }
 
 .webapp-list-select

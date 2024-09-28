@@ -184,7 +184,7 @@ async function itemListener(event)
         for (let i = 0; i < listsData.length; i++)
         {
             let optionListSelect = document.createElement("option");
-            optionListSelect.value = listsData[i]["list_name"];
+            optionListSelect.value = listsData[i]["id"];
             optionListSelect.innerHTML = listsData[i]["list_name"];
             listSelect.appendChild(optionListSelect);
         }
@@ -192,7 +192,7 @@ async function itemListener(event)
         listSelect.addEventListener("input", debouncedUpdate);
 
     }
-    document.querySelector(".webapp-list-select").value = item.list;
+    document.querySelector(".webapp-list-select").value = item.list_id;
 
     //Adjusting the type selection
     let typeDisplay = document.querySelector("#item_type_display");
@@ -299,7 +299,7 @@ async function updateDatabase()
             tagsList.push(tagValue);
         }
     }
-    let listName = document.querySelector(".webapp-list-select").value;
+    let listId = document.querySelector(".webapp-list-select").value;
     let typeValue = document.querySelector(".webapp-type-select").value;
     let statusValue;
     if (document.querySelector("#check-item"))
@@ -317,7 +317,7 @@ async function updateDatabase()
         deadline_value: deadlineValue,
         priority_value: priorityValue,
         tags_list: tagsList,
-        list_name: listName,
+        list_id: listId,
         type_value: typeValue,
         status_value: statusValue };
     console.log("Payload:", payload);
@@ -389,7 +389,7 @@ function updateItemTitle()
     {
         let item = ul.children[i];
 
-        if (item)
+        if (item && item.children[0])
         {   
             let divItem = item.children[0];
             let id = parseInt(divItem.id);
@@ -465,7 +465,7 @@ function resetItems()
     for (let i = 0; i < ul.children.length; i++)
     {
         let item = ul.children[i];
-        if (item)
+        if (item && item.children[0])
         {
             item.children[0].style.cssText = ''; 
         }
@@ -723,6 +723,9 @@ function deleteFromScreen()
     document.querySelector("#item_delete_display").innerHTML = "";
     document.querySelector("#item_delete_display").style.cssText = "";
     document.querySelector("#item_delete_display").classList.remove("webapp-delete");
+
+    document.querySelector("#item_header_display").style.cssText = "";
+    document.querySelector("#item_header_display").classList.remove("webapp-item-header");
 }
 
 
@@ -946,7 +949,7 @@ async function searchDatabase()
 
     let payload = { title: input, 
         filter_type: filterType,  
-        item_list: null,
+        list_id: null,
         item_type: null,
         item_status: null
     };
@@ -982,7 +985,7 @@ async function filterDatabase(event)
     let trigger = event.target;
     let filterType = "";
     let filterApplied = "";
-    let itemList = null;
+    let listId = null;
     let itemStatus = null;
     let itemType = null;
 
@@ -1000,9 +1003,9 @@ async function filterDatabase(event)
     }
     else
     {
-        filterApplied = trigger.name;
+        filterApplied = parseInt(trigger.id.replace("list_", ""));
         filterType = "list";
-        itemList = filterApplied;
+        listId = filterApplied;
     }
     
     let metaFilterType = document.querySelector('meta[name="filter-type"]');
@@ -1012,7 +1015,7 @@ async function filterDatabase(event)
 
     let payload = { title: null, 
         filter_type: filterType,  
-        item_list: itemList,
+        list_id: listId,
         item_type: itemType,
         item_status: itemStatus
     };
@@ -1081,51 +1084,71 @@ function closeSearch()
 
 
 async function selectDatabase(type) 
-    {
-        let itemsData = [];
-        let itemsDataAux = await readDatabase(type);
-
-        let metaFilterType = document.querySelector('meta[name="filter-type"]').content;
-        let metaFilterApplied = document.querySelector('meta[name="filter-applied"]').content;
-
-        for (let i = 0; i < itemsDataAux.length; i++)
-        {   
-            if (metaFilterType == "search")
+{
+    let itemsData = [];
+    let itemsDataAux = await readDatabase(type);
+    let metaFilterType = document.querySelector('meta[name="filter-type"]').content;
+    let metaFilterApplied = document.querySelector('meta[name="filter-applied"]').content;
+    for (let i = 0; i < itemsDataAux.length; i++)
+    {   
+        if (metaFilterType == "search")
+        {
+            if (itemsDataAux[i].title.toLowerCase().includes(metaFilterApplied.toLowerCase()) && !itemsDataAux[i].item_status)
             {
-                if (itemsDataAux[i].title.toLowerCase().includes(metaFilterApplied.toLowerCase()) && !itemsDataAux[i].item_status)
-                {
-                    itemsData.push(itemsDataAux[i]);
-                }
-            }
-            else if (metaFilterType == "list")
-            {
-                if (itemsDataAux[i].list == metaFilterApplied && itemsDataAux[i].item_status == 0)
-                {
-                    itemsData.push(itemsDataAux[i]);
-                }
-            }
-            else if (metaFilterType == "complete")
-            {
-                if (itemsDataAux[i].item_status == 1)
-                {
-                    itemsData.push(itemsDataAux[i]);
-                }
-            }
-            else if (metaFilterType == "type")
-            {
-                if (itemsDataAux[i].item_type == metaFilterApplied && itemsDataAux[i].item_status == 0)
-                {
-                    itemsData.push(itemsDataAux[i]);
-                }
-            }
-            else
-            {
-                if (!itemsDataAux[i].item_status)
-                {
-                    itemsData.push(itemsDataAux[i]);
-                }
+                itemsData.push(itemsDataAux[i]);
             }
         }
-
-        return itemsData;
+        else if (metaFilterType == "list")
+        {
+            if (itemsDataAux[i].list_id == parseInt(metaFilterApplied) && itemsDataAux[i].item_status == 0)
+            {
+                itemsData.push(itemsDataAux[i]);
+            }
+        }
+        else if (metaFilterType == "complete")
+        {
+            if (itemsDataAux[i].item_status == 1)
+            {
+                itemsData.push(itemsDataAux[i]);
+            }
+        }
+        else if (metaFilterType == "type")
+        {
+            if (itemsDataAux[i].item_type == metaFilterApplied && itemsDataAux[i].item_status == 0)
+            {
+                itemsData.push(itemsDataAux[i]);
+            }
+        }
+        else
+        {
+            if (!itemsDataAux[i].item_status)
+            {
+                itemsData.push(itemsDataAux[i]);
+            }
+        }
     }
+    return itemsData;
+}
+
+
+function updateList(event)
+{
+    let listId = parseInt(event.target.id.replace("button_list_", ""));
+    let metaList = document.querySelector('meta[name="update-list"]');
+    metaList.setAttribute("content", listId);
+
+    let listObject;
+
+    for (let i = 0; i < listsData.length; i++)
+    {
+        if (listsData[i].id == listId)
+        {
+            listObject = listsData[i];
+        }
+    }
+
+    document.querySelector("#edit_list_icon").value = listObject.list_icon;
+    document.querySelector("#edit_list_name").value = listObject.list_name;
+    document.querySelector("#edit_list_id").value = listObject.id;
+    document.querySelector("#delete_list_id").value = listObject.id;
+}
