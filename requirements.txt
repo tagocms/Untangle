@@ -1,4 +1,6 @@
 email_validator==2.2.0
-Flask==2.0.1
+Flask>=2.0.1
+flask_session==0.8.0
+flask_wtf==1.2.1
 SQLAlchemy==2.0.31
-Werkzeug==2.0.2
+Werkzeug>=2.0.2
