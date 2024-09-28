@@ -6,9 +6,10 @@
 
 {% block body_layout %}
 <div class="row" style="margin: 0;">
-    <meta name="filter-applied" content="">
+    <meta name="filter-type" content="list">
+    <meta name="filter-applied" content="Inbox">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <div class="column-3 shadow bg-body content" style="flex: 10%; height: 100vh; padding: 2%;">
+    <div class="column-3 shadow bg-body content" style="flex: 10%; height: 100vh; padding: 2%; overflow: auto;">
         <div class="webapp-text">
             <img src="/static/user.png" alt="Notes" class="img-fluid img-list">
             <button type="button" class="btn webapp-text" data-bs-toggle="modal" data-bs-target="#mySpace" id="modalButton">
@@ -40,14 +41,20 @@
             <ul style="list-style-type: none; padding: 0%;">
                 <li>
                     <img src="/static/edit-grey.png" alt="Notes" class="img-fluid img-list">
-                    <button type="button" class="btn webapp-filter-button-main">
+                    <button type="button" class="btn webapp-filter-button-main" onclick="resetFilteredItems(event)" id="filter_note">
                         Note Manager
                     </button>
                 </li>
                 <li>
                     <img src="/static/check-grey.png" alt="Tasks" class="img-fluid img-list">
-                    <button type="button" class="btn webapp-filter-button-main">
+                    <button type="button" class="btn webapp-filter-button-main" onclick="resetFilteredItems(event)" id="filter_task">
                         Task Manager
+                    </button>
+                </li>
+                <li></li>
+                    <img src="/static/check-square4.png" alt="Search" class="img-fluid img-list">
+                    <button type="button" class="btn webapp-filter-button-main" onclick="resetFilteredItems(event)" id="filter_completed">
+                        Completed
                     </button>
                 </li>
                 <li>
@@ -60,7 +67,32 @@
             <div id="lists_div">
                 <div class="webapp-filter-display">
                     <div class="webapp-filter">Lists</div>
-                    <button type="button" class="btn webapp-add-button">+</button>
+                    <button type="button" data-bs-toggle="modal" data-bs-target="#createList" class="btn webapp-add-button">+</button>
+                    <div class="modal fade" id="createList" tabindex="-1" aria-labelledby="createListLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                          <div class="modal-content">
+                            <div class="modal-header">
+                              <h5 class="modal-title webapp-text" id="createListLabel">Create List</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" style="text-align: center;">
+                                <form action="/create-list" method="post">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <select class="webapp-list-select-emoji" name="list_emoji">
+                                        {% for emoji in emojis %}
+                                            <option>{{ emoji }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text small webapp-create" maxlength="30" name="create_list" id="list_name" placeholder="Create list" aria-label="Item" aria-describedby="addon-wrapping">
+                                    <button type="submit" class="btn webapp-close-button" style="font-size: 100%; margin: 5%;">Create</button>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn webapp-close-button" data-bs-dismiss="modal">Close</button>
+                            </div>
+                          </div>
+                        </div>
+                    </div>
                 </div>
                 <ul style="list-style-type: none; padding: 0%;" >
                     {% for list in lists %}
@@ -89,33 +121,31 @@
         <form action="/create" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="input-group flex-nowrap shadow-sm">
-                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" name="create_item" placeholder="+ Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
+                <input type="text" class="form-control p-3 bg-body-tertiary rounded webapp-text webapp-create" maxlength="200" name="create_item" id="create_bar" placeholder="+ Add task or note" aria-label="Item" aria-describedby="addon-wrapping">
             </div>
         </form>
         <div>
             <ul style="list-style-type: none; padding: 0%;" id="webapp_items_list_display">
                 {% for item in items %}
-                {% if item.item_status == 0 %}
+                {% if item.item_status == 0 and item.list == "Inbox" %}
                 <li>
                     {% if item.item_type == "note" %}
                         <div class="shadow p-3  webapp-text rounded webapp-item" onclick="itemListener(event)" id="{{ item.id }}">
-                            <img src="/static/edit.png" alt="Notes">
-                            <div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
+                            <img src="/static/edit.png" alt="Notes"><div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         </div>
                     {% elif item.item_type == "task" %}
                         <div class="shadow p-3  webapp-text rounded webapp-item" onclick="itemListener(event)" id="{{ item.id }}">
                         {% if item.item_priority == none or item.item_priority == 0 %}
-                            <input class="form-check-input webapp-task-p0" type="checkbox" oninput="itemListener(event)">
+                            <input class="form-check-input webapp-task-p0" type="checkbox" oninput="itemListener(event)"><div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         {% elif item.item_priority == 1 %}
-                            <input class="form-check-input webapp-task-p1" type="checkbox" oninput="itemListener(event)">
+                            <input class="form-check-input webapp-task-p1" type="checkbox" oninput="itemListener(event)"><div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         {% elif item.item_priority == 2 %}
-                            <input class="form-check-input webapp-task-p2" type="checkbox" oninput="itemListener(event)">
+                            <input class="form-check-input webapp-task-p2" type="checkbox" oninput="itemListener(event)"><div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         {% elif item.item_priority == 3 %}
-                            <input class="form-check-input webapp-task-p3" type="checkbox" oninput="itemListener(event)">
+                            <input class="form-check-input webapp-task-p3" type="checkbox" oninput="itemListener(event)"><div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         {% else %}
-                            <input class="form-check-input webapp-task-p0" type="checkbox" oninput="itemListener(event)">
+                            <input class="form-check-input webapp-task-p0" type="checkbox" oninput="itemListener(event)"><div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         {% endif %}
-                            <div class="webapp-item-title-text" onclick="itemListener(event)">{{ item.title }}</div>
                         </div>
                     {% endif %}
                 </li>
@@ -149,7 +179,7 @@
 
     async function fetchData() 
     {
-        itemsData = await readDatabase("items");
+        itemsData = await selectDatabase("items");
         tagsData = await readDatabase("tags");
         listsData = await readDatabase("lists");
         console.log(itemsData, tagsData, listsData);

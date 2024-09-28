@@ -60,6 +60,7 @@ async function itemListener(event)
         titleTextArea.rows = 1;
         titleTextArea.wrap = "soft";
         titleTextArea.spellcheck = "false";
+        titleTextArea.setAttribute("maxlength", 200);
         titleTextArea.addEventListener("input", debouncedUpdate);
         document.addEventListener("areaAdjusted", adjustTextareaHeight)
         titleTextArea.addEventListener("keydown", function(key_event) {
@@ -380,44 +381,64 @@ async function debouncedUpdate()
 
 function updateItemTitle()
 {
-    let metaFilter = document.querySelector('meta[name="filter-applied"]');
-    for (let i = 0; i < itemsData.length; i++)
-    {
-        let item = document.getElementById(String(itemsData[i].id));
-        if (item && itemsData[i].list == metaFilter.getAttribute('content'))
-        {
-            item.children[1].innerHTML = itemsData[i].title;
-            item.children[0].className = "";
-            if (itemsData[i].item_type == "task")
-            {
-                let checkInput = document.createElement("input");
-                checkInput.setAttribute("type", "checkbox");
-                if (itemsData[i].item_priority == "null" || itemsData[i].item_priority == 0)
-                {
-                    item.children[0].classList.add("form-check-input", "webapp-task-p0");
-                }
-                else
-                {
-                    item.children[0].classList.add("form-check-input", "webapp-task-p" + String(itemsData[i].item_priority));
-                }
+    let ul = document.querySelector("#webapp_items_list_display");
 
-                if (item.children[0].tagName != "INPUT")
+    console.log("UpdateItemTitle called.")
+
+    for (let i = 0; i < ul.children.length; i++)
+    {
+        let item = ul.children[i];
+
+        if (item)
+        {   
+            let divItem = item.children[0];
+            let id = parseInt(divItem.id);
+
+            let itemsDataItem;
+
+            for (let j = 0; j < itemsData.length; j++)
+            {
+                if (itemsData[j].id == id)
                 {
-                    item.replaceChild(checkInput, item.children[0]);
+                    itemsDataItem = itemsData[j];
                 }
             }
-            else if (itemsData[i].item_type == "note" && item.children[0].tagName != "IMG")
+
+            if (!itemsDataItem)
             {
-                console.log("Tag name:", item.children[0].tagName);
-                console.log("Update list note image.");
-                let noteImage = document.createElement("img");
-                noteImage.setAttribute("src", "/static/edit.png");
-                item.replaceChild(noteImage, item.children[0]);
+                item.parentNode.removeChild(item);
             }
-        }
-        else if (item && itemsData[i].list != metaFilter.getAttribute('content'))
-        {
-            item.parentNode.removeChild(item);
+            else
+            {
+                divItem.children[1].innerHTML = itemsDataItem.title;
+                divItem.children[0].className = "";
+                if (itemsDataItem.item_type == "task")
+                {
+                    let checkInput = document.createElement("input");
+                    checkInput.setAttribute("type", "checkbox");
+                    if (itemsDataItem.item_priority == "null" || itemsDataItem.item_priority == 0)
+                    {
+                        divItem.children[0].classList.add("form-check-input", "webapp-task-p0");
+                    }
+                    else
+                    {
+                        divItem.children[0].classList.add("form-check-input", "webapp-task-p" + String(itemsDataItem.item_priority));
+                    }
+
+                    if (divItem.children[0].tagName != "INPUT")
+                    {
+                        divItem.replaceChild(checkInput, divItem.children[0]);
+                    }
+                }
+                else if (itemsDataItem.item_type == "note" && divItem.children[0].tagName != "IMG") 
+                {
+                    console.log("Tag name:", divItem.children[0].tagName);
+                    console.log("Update list note image.");
+                    let noteImage = document.createElement("img");
+                    noteImage.setAttribute("src", "/static/edit.png");
+                    divItem.replaceChild(noteImage, divItem.children[0]);
+                }
+            }
         }
     }
 }
@@ -439,12 +460,14 @@ function updateItemTitleSelected()
 
 function resetItems()
 {
-    for (let i = 0; i < itemsData.length; i++)
+    let ul = document.querySelector("#webapp_items_list_display");
+
+    for (let i = 0; i < ul.children.length; i++)
     {
-        let item = document.getElementById(String(itemsData[i].id));
+        let item = ul.children[i];
         if (item)
         {
-            item.style.cssText = ''; 
+            item.children[0].style.cssText = ''; 
         }
     }
 }
@@ -461,9 +484,9 @@ function priorityColor()
 
 function updateCheckBox()
 {
+    let itemId = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
     for (let i = 0; i < itemsData.length; i++)
     {
-        let itemId = parseInt(document.querySelector(".edit_item_column").id.replace("edit_item_column", ""));
         if (itemsData[i].id == itemId && itemsData[i].item_type == "task")
         {
             document.querySelector("#check-item").className = "";
@@ -829,16 +852,17 @@ async function itemChangeCompletion()
 }
 
 
-function resetScreen(itemsData = itemsData)
+function resetScreen(itemsDataReset = itemsData)
 {
     let ul = document.querySelector("#webapp_items_list_display");
     ul.innerHTML = "";
 
-    for (let i = 0; i < itemsData.length; i++)
+    for (let i = 0; i < itemsDataReset.length; i++)
     {
-        let item = itemsData[i];
+        let item = itemsDataReset[i];
+        let metaFilterType = document.querySelector('meta[name="filter-type"]').content;
         
-        if (!item.item_status)
+        if (item.item_status == 0 || (metaFilterType == "complete" && item.item_status == 1))
         {
             let li = document.createElement("li");
             let divItem = document.createElement("div");
@@ -867,6 +891,10 @@ function resetScreen(itemsData = itemsData)
                     item.priority = 0;
                 }
                 inputItem.classList.add("form-check-input", "webapp-task-p" + item.item_priority);
+                if (itemsDataReset[i].item_status == 1)
+                {
+                    inputItem.setAttribute("checked", "true");
+                }
                 inputItem.addEventListener("input", itemListener);
                 divItem.appendChild(inputItem);
             }
@@ -881,6 +909,9 @@ function resetScreen(itemsData = itemsData)
 
 function openSearch(event)
 {
+    let ul = document.querySelector("#webapp_items_list_display");
+    ul.innerHTML = "";
+    
     var column = document.querySelector("#list_item_column");
     var divSearch = document.createElement("div");
     var inputSearch = document.createElement("input");
@@ -889,6 +920,7 @@ function openSearch(event)
     inputSearch.className = "form-control p-3 bg-body-tertiary rounded webapp-text webapp-create";
     inputSearch.name = "search_item";
     inputSearch.setAttribute("type", "text");
+    inputSearch.setAttribute("maxlength", "200");
     inputSearch.setAttribute("id", "search_bar");
     inputSearch.setAttribute("placeholder", "Search");
     inputSearch.setAttribute("aria-label", "Item");
@@ -906,9 +938,17 @@ async function searchDatabase()
 {
     let input = document.querySelector("#search_bar").value;
     let filterType = "search";
+    
+    let metaFilterType = document.querySelector('meta[name="filter-type"]');
+    metaFilterType.setAttribute("content", filterType);
+    let metaFilterApplied = document.querySelector('meta[name="filter-applied"]');
+    metaFilterApplied.setAttribute("content", input);
+
     let payload = { title: input, 
         filter_type: filterType,  
-        item_list: null
+        item_list: null,
+        item_type: null,
+        item_status: null
     };
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -938,14 +978,43 @@ async function resetSearchedItems()
 
 
 async function filterDatabase(event)
-{
-    let metaFilter = document.querySelector('meta[name="filter-applied"]');
-    let itemList = event.target.name;
-    metaFilter.setAttribute("content", itemList);
-    let filterType = "list";
+{   
+    let trigger = event.target;
+    let filterType = "";
+    let filterApplied = "";
+    let itemList = null;
+    let itemStatus = null;
+    let itemType = null;
+
+    if (trigger.id == "filter_completed")
+    {
+        filterApplied = 1;
+        filterType = "complete";
+        itemStatus = filterApplied;
+    }
+    else if (trigger.id == "filter_task" || trigger.id == "filter_note")
+    {
+        filterApplied = trigger.id.replace("filter_", "");
+        filterType = "type";
+        itemType = filterApplied;
+    }
+    else
+    {
+        filterApplied = trigger.name;
+        filterType = "list";
+        itemList = filterApplied;
+    }
+    
+    let metaFilterType = document.querySelector('meta[name="filter-type"]');
+    metaFilterType.setAttribute("content", filterType);
+    let metaFilterApplied = document.querySelector('meta[name="filter-applied"]');
+    metaFilterApplied.setAttribute("content", filterApplied);
+
     let payload = { title: null, 
         filter_type: filterType,  
-        item_list: itemList
+        item_list: itemList,
+        item_type: itemType,
+        item_status: itemStatus
     };
     let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -966,8 +1035,97 @@ async function filterDatabase(event)
     return itemsData; 
 }
 
+
 async function resetFilteredItems(event)
 {
     let filteredItemsData = await filterDatabase(event);
+    console.log(filteredItemsData);
     resetScreen(filteredItemsData);
+    closeSearch();
 }
+
+function closeSearch()
+{
+    
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var column = document.querySelector("#list_item_column");
+    var formCreate = document.createElement("form");
+    var inputCSRF = document.createElement("input");
+    var divCreate = document.createElement("div");
+    var inputCreate = document.createElement("input");
+
+    formCreate.setAttribute("action", "/create");
+    formCreate.setAttribute("method", "post");
+
+    inputCSRF.setAttribute("type", "hidden");
+    inputCSRF.setAttribute("name", "csrf_token");
+    inputCSRF.setAttribute("value", csrfToken);
+
+    divCreate.className = "input-group flex-nowrap shadow-sm";
+
+    inputCreate.className = "form-control p-3 bg-body-tertiary rounded webapp-text webapp-create";
+    inputCreate.name = "create_item";
+    inputCreate.setAttribute("type", "text");
+    inputCreate.setAttribute("maxlength", "200");
+    inputCreate.setAttribute("id", "create_bar");
+    inputCreate.setAttribute("placeholder", "+ Add task or note");
+    inputCreate.setAttribute("aria-label", "Item");
+    inputCreate.setAttribute("aria-describedby", "addon-wrapping");
+
+    divCreate.appendChild(inputCreate);
+    formCreate.appendChild(inputCSRF);
+    formCreate.appendChild(divCreate);
+
+    column.replaceChild(formCreate, column.children[0]);
+}
+
+
+async function selectDatabase(type) 
+    {
+        let itemsData = [];
+        let itemsDataAux = await readDatabase(type);
+
+        let metaFilterType = document.querySelector('meta[name="filter-type"]').content;
+        let metaFilterApplied = document.querySelector('meta[name="filter-applied"]').content;
+
+        for (let i = 0; i < itemsDataAux.length; i++)
+        {   
+            if (metaFilterType == "search")
+            {
+                if (itemsDataAux[i].title.toLowerCase().includes(metaFilterApplied.toLowerCase()) && !itemsDataAux[i].item_status)
+                {
+                    itemsData.push(itemsDataAux[i]);
+                }
+            }
+            else if (metaFilterType == "list")
+            {
+                if (itemsDataAux[i].list == metaFilterApplied && itemsDataAux[i].item_status == 0)
+                {
+                    itemsData.push(itemsDataAux[i]);
+                }
+            }
+            else if (metaFilterType == "complete")
+            {
+                if (itemsDataAux[i].item_status == 1)
+                {
+                    itemsData.push(itemsDataAux[i]);
+                }
+            }
+            else if (metaFilterType == "type")
+            {
+                if (itemsDataAux[i].item_type == metaFilterApplied && itemsDataAux[i].item_status == 0)
+                {
+                    itemsData.push(itemsDataAux[i]);
+                }
+            }
+            else
+            {
+                if (!itemsDataAux[i].item_status)
+                {
+                    itemsData.push(itemsDataAux[i]);
+                }
+            }
+        }
+
+        return itemsData;
+    }

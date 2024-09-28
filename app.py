@@ -69,6 +69,7 @@ def index():
 @login_required
 def webapp():
     user_id = session.get("user_id")
+    emojis = ["😀", "😂", "😍", "😎", "😭"]
 
     with db.begin() as conn:
         result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id})
@@ -88,7 +89,7 @@ def webapp():
             rows = result.mappings().all()
     lists = [dict(row) for row in rows]
     
-    return render_template("webapp.html", items=items, tags=tags, lists=lists)
+    return render_template("webapp.html", items=items, tags=tags, lists=lists, emojis=emojis)
 
 @app.route("/create", methods=["POST", "GET"])
 @login_required
@@ -96,7 +97,7 @@ def create():
     if request.method == "POST":
         title = request.form.get("create_item")
 
-        if not title:
+        if not title or len(title) > 200:
             return redirect("/webapp")
         
         item_type = "task"
@@ -151,7 +152,7 @@ def update():
         if item_type == "note":
             item_status = False
 
-        if not id:
+        if not id or len(title) > 200:
             return jsonify({"response": "Invalid data", "type": 400})
 
         with db.begin() as conn:
@@ -240,6 +241,8 @@ def filter():
         title = data["title"]
         filter_type = data["filter_type"]
         item_list = data["item_list"]
+        item_type = data["item_type"]
+        item_status = data["item_status"]
         user_id = session.get("user_id")
 
         if filter_type == "search":
@@ -252,11 +255,47 @@ def filter():
                 result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND list = :item_list ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "item_list": item_list})
                 rows = result.mappings().all()
             items = [dict(row) for row in rows]
+        elif filter_type == "complete":
+            with db.begin() as conn:
+                result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND item_status = :item_status ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "item_status": item_status})
+                rows = result.mappings().all()
+            items = [dict(row) for row in rows]
+        elif filter_type == "type":
+            with db.begin() as conn:
+                result = conn.execute(text("SELECT * FROM items WHERE user_id = :user_id AND item_type = :item_type ORDER BY item_type DESC, datetime(Timestamp) DESC"), {"user_id": user_id, "item_type": item_type})
+                rows = result.mappings().all()
+            items = [dict(row) for row in rows]
+        else:
+            return jsonify({"response": "Item not found", "type": 400})
 
         return jsonify(items)
     else:
         return jsonify({"response": "No update", "type": 200})
 
+
+@app.route("/create-list", methods=["POST", "GET"])
+@login_required
+def create_list():
+    if request.method == "POST":
+        list_name = request.form.get("create_list")
+        list_icon = request.form.get("list_emoji")
+
+        if not list_name or len(list_name) > 30:
+            return redirect("/webapp")
+
+        if not list_icon:
+            list_icon = "📋"
+        
+        user_id = session.get("user_id")
+
+        with db.begin() as conn:
+            conn.execute(text("INSERT INTO lists (list_icon, list_name, user_id) VALUES (:list_icon, :list_name, :user_id)"), 
+                         {"list_icon": list_icon, "list_name": list_name, "user_id": user_id})
+        
+        return redirect("/webapp")
+    else:
+        return redirect("/webapp")
+    
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
