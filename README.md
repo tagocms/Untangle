@@ -6,6 +6,8 @@
 Untangle is a note and task management webapp, created using Flask as the back-end, SQLITE3 as the database, HTML, CSS and JavaScript for scripting. The project was started on July 25th, 2024 and took until September 28th, 2024 to have its first version completed. I'm still going to update the project, but I'm happy at where it is currently.
 
 ### Landing Page
+![Landing Page](README-Images/LP.png)
+
 The landing page design and name were the first things created for the project. It was where it became clear the identity and purpose of the app: to untangle people's minds through a system of managing obligations, tasks, reminders, files and notes. By allowing people to relieve their minds of the burden of remembering everything and being perfect, we can empower them to lead healthier lives and do exactly what matters most to them. That was the whole idea behind the landing page, and, in turn, the app.
 
 Here, the features of the app are shown and, even though some of the promised features aren't in the app as of now, they will surely be implemented in future updates.
@@ -13,6 +15,8 @@ Here, the features of the app are shown and, even though some of the promised fe
 It was here that was necessary to use a lot of CSS to our advantage, in order to make the page responsive and look great, no matter the device by which it was accessed. I also learned about flexboxes here, in order to create columns in the page.
 
 ### Sign Up and Log In Pages
+![Sign Up and Log In](README-Images/login.png)
+
 The Sign Up and Log In pages were the first time this project used a database, and it was used in order to store user information. Also, Flask Session was utilized to allow the user to log in correctly to the webapp. I learned a lot about forms, routes and decorating functions in Python, making it so that certain routes require the user to be logged in to be accessed.
 
 Also, error messages were shown to users who tried to create invalid accounts, with invalid e-mails or passwords. The same goes for users trying to log in to their accounts: the validation was clear and precise in making sure only users with access to all the necessary credentials could log in to the webapp. I also learned to create and use CSRF Tokens, to guarantee authentication from the user when submitting forms.
@@ -20,6 +24,8 @@ Also, error messages were shown to users who tried to create invalid accounts, w
 The Sign Up process also creates an item list called "Inbox", which is the default for all created items in the webapp.
 
 ### Webapp
+![Webapp](README-Images/webapp.png)
+
 #### Overview
 The app is divided into three columns:
 1. The configurations and filters column;
